@@ -232,23 +232,6 @@ public class Trace {
         return sample.limit();
     }
 
-    /**
-     * Get the TraceSet containing this Trace.
-     */
-    public TraceSet getTraceSet() {
-        return ts;
-    }
-
-    /**
-     * set the TraceSet for this Trace
-     * 
-     * @param ts
-     *            the new TraceSet
-     */
-    public void setTraceSet(TraceSet ts) {
-        this.ts = ts;
-    }
-
     private FloatBuffer sample;
     /** trace title */
     public String title = null;
