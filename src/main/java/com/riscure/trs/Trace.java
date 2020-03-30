@@ -107,7 +107,7 @@ public class Trace {
     /**
      * Get the preferred data type to store samples
      * 
-     * @return data type
+     * @return the preferred data type to store samples
      **/
     public int getPreferredCoding() {
         if (!aggregatesValid)
@@ -154,8 +154,7 @@ public class Trace {
     /**
      * Set the title for this trace.
      * 
-     * @param title
-     *            the new title
+     * @param title the new title
      */
     public void setTitle(String title) {
         this.title = title;
@@ -173,8 +172,7 @@ public class Trace {
     /**
      * Set the sample frequency for this trace.
      * 
-     * @param sampleFrequency
-     *            the sample frequency
+     * @param sampleFrequency the sample frequency
      */
     public void setSampleFrequency(float sampleFrequency) {
         this.sampleFrequency = sampleFrequency;
@@ -182,6 +180,8 @@ public class Trace {
 
     /**
      * Get the supplementary (crypto) data of this trace.
+     *
+     * @return the supplementary data of this trace
      */
     public byte[] getData() {
         return data;
@@ -198,6 +198,8 @@ public class Trace {
 
     /**
      * Get the supplementary (crypto) data of this trace as a hexadecimal string.
+     *
+     * @return the supplementary (crypto) data of this trace as a hexadecimal string
      */
     public String getDataString() {
         return new BigInteger(data).toString(16);
@@ -205,6 +207,8 @@ public class Trace {
 
     /**
      * Get the number of samples that this trace is shifted.
+     *
+     * @return the number of samples that this trace is shifted
      */
     public int getShifted() {
         return shifted;
@@ -213,8 +217,7 @@ public class Trace {
     /**
      * Set the number of samples that this trace is shifted
      * 
-     * @param shifted
-     *            number of shifted samples
+     * @param shifted number of shifted samples
      */
     public void setShifted(int shifted) {
         this.shifted = shifted;
@@ -222,26 +225,11 @@ public class Trace {
 
     /**
      * Get the length of the sample array.
+     *
+     * @return the length of the sample array
      */
     public int getNumberOfSamples() {
         return sample.limit();
-    }
-
-    /**
-     * Get the TraceSet containing this Trace.
-     */
-    public TraceSet getTraceSet() {
-        return ts;
-    }
-
-    /**
-     * set the TraceSet for this Trace
-     * 
-     * @param ts
-     *            the new TraceSet
-     */
-    public void setTraceSet(TraceSet ts) {
-        this.ts = ts;
     }
 
     private FloatBuffer sample;

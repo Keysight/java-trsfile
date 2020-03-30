@@ -360,6 +360,7 @@ public class TraceSet implements AutoCloseable {
      * @param file the path to the file to save
      * @param traces the list of traces to save in the file
      * @throws IOException when any write exception is encountered
+     * @throws TRSFormatException when any TRS formatting issues arise from saving the provided traces
      */
     public static void save(String file, List<Trace> traces) throws IOException, TRSFormatException {
         TRSMetaData trsMetaData = TRSMetaData.create();
@@ -372,6 +373,7 @@ public class TraceSet implements AutoCloseable {
      * @param traces the list of traces to save in the file
      * @param metaData the metadata associated with the set to create
      * @throws IOException when any write exception is encountered
+     * @throws TRSFormatException when any TRS formatting issues arise from saving the provided traces
      */
     public static void save(String file, List<Trace> traces, TRSMetaData metaData) throws IOException, TRSFormatException {
         TraceSet traceSet = create(file, metaData);
@@ -410,6 +412,7 @@ public class TraceSet implements AutoCloseable {
      * SCALE_X is defined for the whole set based on the sampling frequency of the first trace <br>
      * SAMPLE_CODING is defined for the whole set based on the values of the first trace <br>
      * @param file the path to the file to be created
+     * @param metaData the user-supplied meta data
      * @return a writable trace set object
      * @throws IOException if the file creation failed
      */
