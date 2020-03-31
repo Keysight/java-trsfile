@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TRSMetaData {
-    private static final String IGNORING_NEW_VALUE = "Ignoring new value '%s' because previously defined value is non-default (%s)";
+    private static final String IGNORING_NEW_VALUE = "%s: Ignoring new value (%s) because previously defined value is non-default (%s) and overwrite is disabled.%n";
+    private static final String INCOMPATIBLE_TYPES = "Failed to add tag %s: Expected type (%s) does not match actual type (%s).";
 
     private final Map<TRSTag, Object> metaData;
 
@@ -25,12 +26,13 @@ public class TRSMetaData {
     }
 
     /**
-     * Add the data associated with the supplied tag to this metadata
+     * Add the data associated with the supplied tag to this metadata.
+     * This will overwrite any existing value
      * @param tag the tag for which to save the metadata
      * @param data the data to save
      */
     public void put(TRSTag tag, Object data) {
-        metaData.put(tag, data);
+        put(tag, data, true);
     }
 
     /**
@@ -40,10 +42,15 @@ public class TRSMetaData {
      * @param overwriteNonDefault whether to overwrite non-default values currently saved for this tag
      */
     public void put(TRSTag tag, Object data, boolean overwriteNonDefault) {
+        if (tag.getType() != data.getClass()) {
+            throw new IllegalArgumentException(
+                    String.format(INCOMPATIBLE_TYPES, tag.name(), tag.getType(), data.getClass()));
+        }
+
         if (hasDefaultValue(tag) || overwriteNonDefault) {
             metaData.put(tag, data);
         } else {
-            System.err.printf(IGNORING_NEW_VALUE, data.toString(), metaData.get(tag));
+            System.err.printf(IGNORING_NEW_VALUE, tag.name(), data.toString(), metaData.get(tag));
         }
     }
 
