@@ -12,16 +12,22 @@ public class TraceParameterDefinition<T extends TraceParameter> implements Seria
 
     private Class<T> type;
     private short offset;
-    private short length;
+    private short size;
 
     public TraceParameterDefinition() {}
+
+    public TraceParameterDefinition(T instance, short offset) {
+        this.type = (Class<T>) instance.getClass();
+        this.offset = offset;
+        this.size = (short) instance.length();
+    }
 
     public TraceParameterDefinition(Class<T> type, short offset) throws TRSFormatException {
         this.type = type;
         this.offset = offset;
         try {
-            this.length = (short) type.getConstructor().newInstance().serialize().length;
-        } catch (IOException | InstantiationException | InvocationTargetException |
+            this.size = (short) type.getConstructor().newInstance().serialize().length;
+        } catch (InstantiationException | InvocationTargetException |
                 NoSuchMethodException | IllegalAccessException e) {
             throw new TRSFormatException(FAILED_TO_INSTANTIATE_TRACE_PARAMETER, e);
         }
@@ -43,11 +49,11 @@ public class TraceParameterDefinition<T extends TraceParameter> implements Seria
         this.offset = offset;
     }
 
-    public short getLength() {
-        return length;
+    public short getSize() {
+        return size;
     }
 
-    public void setLength(short length) {
-        this.length = length;
+    public void setSize(short size) {
+        this.size = size;
     }
 }
