@@ -5,7 +5,11 @@ public class TRSFormatException extends Exception {
         super(message);
     }
 
-    public TRSFormatException(String formattedMessage, Object... values) {
-        super(String.format(formattedMessage, values));
+    public TRSFormatException(Throwable throwable) {
+        super(throwable);
+    }
+
+    public TRSFormatException(String message, Throwable throwable) {
+        super(message, throwable);
     }
 }

@@ -216,7 +216,7 @@ public class TraceSet implements AutoCloseable {
                 }
                 break;
             default:
-                throw new TRSFormatException("Sample encoding not supported: %s", encoding.name());
+                throw new TRSFormatException(String.format("Sample encoding not supported: %s", encoding.name()));
         }
         return result;
     }
@@ -311,7 +311,7 @@ public class TraceSet implements AutoCloseable {
                 samples = toFloatArray(intData);
                 break;
             default:
-                throw new TRSFormatException(UNKNOWN_SAMPLE_CODING, metaData.getInt(SAMPLE_CODING));
+                throw new TRSFormatException(String.format(UNKNOWN_SAMPLE_CODING, metaData.getInt(SAMPLE_CODING)));
         }
 
         return samples;

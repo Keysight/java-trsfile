@@ -101,7 +101,7 @@ public enum TRSTag {
         for (TRSTag tag : TRSTag.values()) {
             if (tag.getValue() == value) return tag;
         }
-        throw new TRSFormatException(UNKNOWN_TAG, value);
+        throw new TRSFormatException(String.format(UNKNOWN_TAG, value));
     }
 
     @Override

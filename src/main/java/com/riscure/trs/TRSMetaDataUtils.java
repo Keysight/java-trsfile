@@ -45,7 +45,7 @@ public class TRSMetaDataUtils {
                 writeLength(fos, tag.getLength());
                 writeInt(fos, metaData.getInt(tag), tag.getLength());
             } else {
-                throw new TRSFormatException(UNSUPPORTED_TAG_TYPE, tag.getName(), tag.getType());
+                throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, tag.getName(), tag.getType()));
             }
         }
         fos.write(TRSTag.TRACE_BLOCK.getValue());
@@ -123,7 +123,7 @@ public class TRSMetaDataUtils {
         } else if (trsTag.getType() == Integer.class) {
             trsMD.put(trsTag, readInt(buffer, length));
         } else {
-            throw new TRSFormatException(UNSUPPORTED_TAG_TYPE, trsTag.getName(), trsTag.getType());
+            throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, trsTag.getName(), trsTag.getType()));
         }
     }
 
