@@ -2,6 +2,7 @@ package com.riscure.trs;
 
 import com.riscure.trs.enums.Encoding;
 import com.riscure.trs.parameter.trace.TraceParameter;
+import com.riscure.trs.parameter.trace.TraceParameters;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
 
@@ -12,7 +13,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +29,7 @@ public class TraceSet implements AutoCloseable {
     private static final String TRACE_SAMPLING_FREQUENCY_DIFFERS = "All traces in a set need to have the same sampling frequency, but current trace data (%.05f) differs from the previous trace(s) (%.05f)";
     private static final String UNKNOWN_SAMPLE_CODING = "Error reading TRS file: unknown sample coding '%d'";
     private static final long MAX_BUFFER_SIZE = Integer.MAX_VALUE;
+    private static final String PARAMETER_NOT_DEFINED = "Parameter %s is saved in the trace, but was not found in the header definition";
 
     //Reading variables
     private int metaDataSize;
@@ -130,15 +131,15 @@ public class TraceSet implements AutoCloseable {
             traceTitle = String.format("%s %d", metaData.getString(GLOBAL_TITLE), index);
         }
 
-        Object traceParameters = metaData.get(TRACE_PARAMETERS);
-        if (traceParameters instanceof TraceParameterDefinitions) {
+        TraceParameterDefinitions traceParameterDefinitions = metaData.getTraceParameterDefinitions();
+        if (traceParameterDefinitions != null) {
             try {
-                Map<String, TraceParameter> serializableParameters = new LinkedHashMap<>();
-                int size = ((TraceParameterDefinitions) traceParameters).getSize();
+                TraceParameters traceParameters = new TraceParameters();
+                int size = traceParameterDefinitions.totalSize();
                 byte[] data = new byte[size];
                 buffer.get(data);
-                for (Map.Entry<String, TraceParameterDefinition<? extends TraceParameter>> entry: ((TraceParameterDefinitions) traceParameters).getParameters().entrySet()) {
-                    short length = entry.getValue().getLength();
+                for (Map.Entry<String, TraceParameterDefinition<? extends TraceParameter>> entry: traceParameterDefinitions.entrySet()) {
+                    short length = entry.getValue().getSize();
                     short offset = entry.getValue().getOffset();
                     Class<? extends TraceParameter> type = entry.getValue().getType();
                     byte[] parameterData = new byte[length];
@@ -146,12 +147,12 @@ public class TraceSet implements AutoCloseable {
                     TraceParameter traceParameter = type.getConstructor().newInstance();
                     traceParameter.deserialize(parameterData);
 
-                    serializableParameters.put(entry.getKey(), traceParameter);
+                    traceParameters.put(entry.getKey(), traceParameter);
                 }
 
                 float[] samples = readSamples();
-                return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), serializableParameters);
-            } catch (TRSFormatException | NoSuchMethodException | ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+                return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), traceParameters);
+            } catch (TRSFormatException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
                 throw new IOException(ex);
             }
         } else {
@@ -184,6 +185,7 @@ public class TraceSet implements AutoCloseable {
             metaData.put(TITLE_SPACE, titleLength, false);
             metaData.put(SCALE_X, 1f/trace.getSampleFrequency(), false);
             metaData.put(SAMPLE_CODING, trace.getPreferredCoding(), false);
+            addTraceParameterDefinitions(trace.getParameters());
             TRSMetaDataUtils.writeTRSMetaData(writeStream, metaData);
             firstTrace = false;
         }
@@ -191,11 +193,42 @@ public class TraceSet implements AutoCloseable {
         int dataLength = metaData.getInt(DATA_LENGTH);
         float sampleFrequency = 1f/metaData.getFloat(SCALE_X);
         checkValid(trace, numberOfSamples, dataLength, sampleFrequency);
+        checkValid(trace, metaData.getTraceParameterDefinitions());
 
         writeTrace(trace);
 
         int numberOfTraces = metaData.getInt(NUMBER_OF_TRACES);
         metaData.put(NUMBER_OF_TRACES, numberOfTraces + 1);
+    }
+
+    private void addTraceParameterDefinitions(TraceParameters parameters) {
+        if (parameters != null) {
+            TraceParameterDefinitions definitions = metaData.getTraceParameterDefinitions();
+            if (definitions == null) {  //user didn't pre-define the offsets etc, so we add them in the order they were added
+                definitions = new TraceParameterDefinitions();
+                short offset = 0;
+                for (Map.Entry<String, TraceParameter> parameter : parameters.entrySet()) {
+                    definitions.put(parameter.getKey(), new TraceParameterDefinition<>(parameter.getValue(), offset));
+                    offset += parameter.getValue().serialize().length;
+                }
+                metaData.put(TRACE_PARAMETER_DEFINITIONS, definitions);
+            }
+        }
+    }
+
+    /**
+     * Check whether all the parameters used in the trace are defined in the header
+     * @param trace the trace to check
+     * @param definitions the definitions to check the trace against
+     */
+    private void checkValid(Trace trace, TraceParameterDefinitions definitions) throws TRSFormatException {
+        if (trace.getParameters() != null) {
+            for (Map.Entry<String, TraceParameter> entry : trace.getParameters().entrySet()) {
+                if (!definitions.containsKey(entry.getKey())) {
+                    throw new TRSFormatException(String.format(PARAMETER_NOT_DEFINED, entry.getKey()));
+                }
+            }
+        }
     }
 
     private void writeTrace(Trace trace) throws TRSFormatException, IOException {

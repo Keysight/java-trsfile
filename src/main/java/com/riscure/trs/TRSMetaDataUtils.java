@@ -47,11 +47,11 @@ public class TRSMetaDataUtils {
                 writeLength(fos, tag.getLength());
                 writeInt(fos, metaData.getInt(tag), tag.getLength());
             } else if (tag.getType() == TraceSetParameters.class) {
-                byte[] serialized = ((TraceSetParameters) metaData.get(tag)).serialize();
+                byte[] serialized = metaData.getTraceSetParameters().serialize();
                 writeLength(fos, serialized.length);
                 fos.write(serialized);
             } else if (tag.getType() == TraceParameterDefinitions.class) {
-                byte[] serialized = ((TraceParameterDefinitions) metaData.get(tag)).serialize();
+                byte[] serialized = metaData.getTraceParameterDefinitions().serialize();
                 writeLength(fos, serialized.length);
                 fos.write(serialized);
             } else {
