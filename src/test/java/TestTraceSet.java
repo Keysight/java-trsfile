@@ -4,6 +4,7 @@ import com.riscure.trs.Trace;
 import com.riscure.trs.TraceSet;
 import com.riscure.trs.enums.Encoding;
 import com.riscure.trs.enums.TRSTag;
+import com.riscure.trs.parameter.trace.TraceParameter;
 import com.riscure.trs.parameter.trace.TraceParameters;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
@@ -16,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -198,12 +201,14 @@ public class TestTraceSet {
     public void testWriteTraceParametersNoDefinitions() throws IOException, TRSFormatException {
         TRSMetaData metaData = new TRSMetaData();
         metaData.put(TRSTag.TRS_VERSION, 2);
+        List<TraceParameters> testParameters = new ArrayList<>();
         //CREATE TRACE
         try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + TRACE_PARAMETERS_TRS, metaData)) {
             for (int k = 0; k < 25; k++) {
                 TraceParameters parameters = new TraceParameters();
                 parameters.put("XYZ", new XYZTestData(k % 5, k / 5, k));
                 traceWithParameters.add(Trace.create("", floatSamples, parameters));
+                testParameters.add(parameters);
             }
         }
         //READ BACK AND CHECK RESULT
@@ -211,10 +216,44 @@ public class TestTraceSet {
             TraceParameterDefinitions parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
             for (int k = 0; k < 25; k++) {
                 Trace trace = readable.get(k);
-                final int test = k;
+                TraceParameters correctValue = testParameters.get(k);
                 parameterDefinitions.forEach((key, parameter) -> {
-                    XYZTestData xyz = (XYZTestData) trace.getParameters().get(key);
-                    assertEquals(xyz, new XYZTestData(test % 5, test / 5, test));
+                    TraceParameter casted = parameter.getType().cast(trace.getParameters().get(key));
+                    assertEquals(casted, correctValue.get(key));
+                });
+            }
+        }
+    }
+
+    @Test
+    public void testWritePrimitiveTraceParametersNoDefinitions() throws IOException, TRSFormatException {
+        TRSMetaData metaData = new TRSMetaData();
+        metaData.put(TRSTag.TRS_VERSION, 2);
+        List<TraceParameters> testParameters = new ArrayList<>();
+        //CREATE TRACE
+        try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + TRACE_PARAMETERS_TRS, metaData)) {
+            for (int k = 0; k < 25; k++) {
+                TraceParameters parameters = new TraceParameters();
+                parameters.put("BYTE", (byte)1);
+                parameters.put("SHORT", (short)1);
+                parameters.put("INT", 1);
+                parameters.put("FLOAT", 1.0f);
+                parameters.put("LONG", 1L);
+                parameters.put("DOUBLE", 1.0d);
+                parameters.put("STRING", "1");
+                traceWithParameters.add(Trace.create("", floatSamples, parameters));
+                testParameters.add(parameters);
+            }
+        }
+        //READ BACK AND CHECK RESULT
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + TRACE_PARAMETERS_TRS)) {
+            TraceParameterDefinitions parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
+            for (int k = 0; k < 25; k++) {
+                Trace trace = readable.get(k);
+                TraceParameters correctValue = testParameters.get(k);
+                parameterDefinitions.forEach((key, parameter) -> {
+                    TraceParameter casted = parameter.getType().cast(trace.getParameters().get(key));
+                    assertEquals(casted, correctValue.get(key));
                 });
             }
         }
