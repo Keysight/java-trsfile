@@ -28,6 +28,7 @@ public class TestTraceSet {
     private static final String INTS_TRS = "ints.trs";
     private static final String FLOATS_TRS = "floats.trs";
     private static final String TRACE_PARAMETERS_TRS = "traceParameters.trs";
+    private static final String TRACE_PARAMETERS_GENERIC_TRS = "traceParametersGeneric.trs";
     private static final String TRACE_PARAMETERS_WITH_DEFINITION_TRS = "traceParametersWithDefinition.trs";
     private static final String TRACE_SET_PARAMETERS_TRS = "traceSetParameters.trs";
     private static final int NUMBER_OF_TRACES = 1024;
@@ -214,6 +215,32 @@ public class TestTraceSet {
                 parameterDefinitions.forEach((key, parameter) -> {
                     XYZTestData xyz = (XYZTestData) trace.getParameters().get(key);
                     assertEquals(xyz, new XYZTestData(test % 5, test / 5, test));
+                });
+            }
+        }
+    }
+
+    @Test
+    public void testWriteGenericTraceParameters() throws IOException, TRSFormatException {
+        TRSMetaData metaData = new TRSMetaData();
+        metaData.put(TRSTag.TRS_VERSION, 2);
+        //CREATE TRACE
+        try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + TRACE_PARAMETERS_GENERIC_TRS, metaData)) {
+            for (int k = 0; k < 25; k++) {
+                TraceParameters parameters = new TraceParameters();
+                parameters.put("XYZ", new XYZGenericTestData(k % 5, k / 5, k));
+                traceWithParameters.add(Trace.create("", floatSamples, parameters));
+            }
+        }
+        //READ BACK AND CHECK RESULT
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + TRACE_PARAMETERS_GENERIC_TRS)) {
+            TraceParameterDefinitions parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
+            for (int k = 0; k < 25; k++) {
+                Trace trace = readable.get(k);
+                final int test = k;
+                parameterDefinitions.forEach((key, parameter) -> {
+                    XYZGenericTestData xyz = (XYZGenericTestData) trace.getParameters().get(key);
+                    assertEquals(xyz, new XYZGenericTestData(test % 5, test / 5, test));
                 });
             }
         }

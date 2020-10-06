@@ -5,6 +5,11 @@ import com.riscure.trs.parameter.trace.TraceParameter;
 import java.io.*;
 import java.util.LinkedHashMap;
 
+/**
+ * This class represents the header definitions of all user-added parameters in the trace format
+ *
+ * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
+ */
 public class TraceParameterDefinitions extends LinkedHashMap<String, TraceParameterDefinition<? extends TraceParameter>> {
     public int totalSize() {
         return values().stream().mapToInt(TraceParameterDefinition::getSize).sum();
