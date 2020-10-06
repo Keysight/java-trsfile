@@ -241,6 +241,7 @@ public class TestTraceSet {
                 parameters.put("LONG", 1L);
                 parameters.put("DOUBLE", 1.0d);
                 parameters.put("STRING", "1");
+                parameters.put("BYTEARRAY", new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
                 traceWithParameters.add(Trace.create("", floatSamples, parameters));
                 testParameters.add(parameters);
             }

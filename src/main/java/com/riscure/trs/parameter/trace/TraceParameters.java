@@ -42,4 +42,8 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
     public void put(String key, String value) {
         put(key, new StringParameter(value));
     }
+
+    public void put(String key, byte[] value) {
+        put(key, new ByteArrayParameter(value));
+    }
 }
