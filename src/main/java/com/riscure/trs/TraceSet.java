@@ -1,14 +1,20 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.Encoding;
+import com.riscure.trs.parameter.trace.TraceParameter;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.riscure.trs.enums.TRSTag.*;
 
@@ -123,13 +129,41 @@ public class TraceSet implements AutoCloseable {
         if (traceTitle.trim().isEmpty()) {
             traceTitle = String.format("%s %d", metaData.getString(GLOBAL_TITLE), index);
         }
-        byte[] data = readData();
 
-        try {
-            float[] samples = readSamples();
-            return new Trace(traceTitle, data, samples, 1f/metaData.getFloat(SCALE_X));
-        } catch (TRSFormatException ex) {
-            throw new IOException(ex);
+        Object traceParameters = metaData.get(TRACE_PARAMETERS);
+        if (traceParameters instanceof TraceParameterDefinitions) {
+            try {
+                Map<String, TraceParameter> serializableParameters = new LinkedHashMap<>();
+                int size = ((TraceParameterDefinitions) traceParameters).getSize();
+                byte[] data = new byte[size];
+                buffer.get(data);
+                for (Map.Entry<String, TraceParameterDefinition<? extends TraceParameter>> entry: ((TraceParameterDefinitions) traceParameters).getParameters().entrySet()) {
+                    short length = entry.getValue().getLength();
+                    short offset = entry.getValue().getOffset();
+                    Class<? extends TraceParameter> type = entry.getValue().getType();
+                    byte[] parameterData = new byte[length];
+                    System.arraycopy(data, offset, parameterData, 0, length);
+                    TraceParameter traceParameter = type.getConstructor().newInstance();
+                    traceParameter.deserialize(parameterData);
+
+                    serializableParameters.put(entry.getKey(), traceParameter);
+                }
+
+                float[] samples = readSamples();
+                return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), serializableParameters);
+            } catch (TRSFormatException | NoSuchMethodException | ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+                throw new IOException(ex);
+            }
+        } else {
+            //legacy mode
+            byte[] data = readData();
+
+            try {
+                float[] samples = readSamples();
+                return new Trace(traceTitle, data, samples, 1f/metaData.getFloat(SCALE_X));
+            } catch (TRSFormatException ex) {
+                throw new IOException(ex);
+            }
         }
     }
 

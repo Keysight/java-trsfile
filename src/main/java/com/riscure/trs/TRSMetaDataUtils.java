@@ -1,6 +1,8 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.TRSTag;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
+import com.riscure.trs.parameter.traceset.TraceSetParameters;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,6 +46,14 @@ public class TRSMetaDataUtils {
             } else if (tag.getType() == Integer.class) {
                 writeLength(fos, tag.getLength());
                 writeInt(fos, metaData.getInt(tag), tag.getLength());
+            } else if (tag.getType() == TraceSetParameters.class) {
+                byte[] serialized = ((TraceSetParameters) metaData.get(tag)).serialize();
+                writeLength(fos, serialized.length);
+                fos.write(serialized);
+            } else if (tag.getType() == TraceParameterDefinitions.class) {
+                byte[] serialized = ((TraceParameterDefinitions) metaData.get(tag)).serialize();
+                writeLength(fos, serialized.length);
+                fos.write(serialized);
             } else {
                 throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, tag.getName(), tag.getType()));
             }
@@ -122,6 +132,10 @@ public class TRSMetaDataUtils {
             trsMD.put(trsTag, readBoolean(buffer));
         } else if (trsTag.getType() == Integer.class) {
             trsMD.put(trsTag, readInt(buffer, length));
+        } else if (trsTag.getType() == TraceSetParameters.class) {
+            trsMD.put(trsTag, readTraceSetParameters(buffer, length));
+        } else if (trsTag.getType() == TraceParameterDefinitions.class) {
+            trsMD.put(trsTag, readTraceParameters(buffer, length));
         } else {
             throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, trsTag.getName(), trsTag.getType()));
         }
@@ -150,5 +164,27 @@ public class TRSMetaDataUtils {
         buffer.get(ba);
 
         return new String(ba);
+    }
+
+    private static TraceSetParameters readTraceSetParameters(ByteBuffer buffer, int length) throws TRSFormatException {
+        byte[] ba = new byte[length];
+        buffer.get(ba);
+
+        try {
+            return TraceSetParameters.deserialize(ba);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new TRSFormatException(e);
+        }
+    }
+
+    private static TraceParameterDefinitions readTraceParameters(ByteBuffer buffer, int length) throws TRSFormatException {
+        byte[] ba = new byte[length];
+        buffer.get(ba);
+
+        try {
+            return TraceParameterDefinitions.deserialize(ba);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new TRSFormatException(e);
+        }
     }
 }
