@@ -1,14 +1,14 @@
-import com.riscure.trs.parameter.trace.GenericTraceParameter;
+import java.io.Serializable;
 
-public class XYZGenericTestData extends GenericTraceParameter {
+public class XYZDefaultTestData implements Serializable {
     private int x;
     private int y;
     private int z;
 
-    public XYZGenericTestData() {
+    public XYZDefaultTestData() {
     }
 
-    public XYZGenericTestData(int x, int y, int z) {
+    public XYZDefaultTestData(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -42,7 +42,7 @@ public class XYZGenericTestData extends GenericTraceParameter {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        XYZGenericTestData that = (XYZGenericTestData) o;
+        XYZDefaultTestData that = (XYZDefaultTestData) o;
         return x == that.x &&
                 y == that.y &&
                 z == that.z;

@@ -4,9 +4,13 @@ import com.riscure.trs.parameter.trace.primitive.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 
 public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
+    private static final String WARNING_GENERIC_OBJECT = "WARNING: Object of type %s does not implement TraceParameter. " +
+            "The object will be saved in the trace, but there will be significant overhead per trace%n";
+
     public byte[] serialize() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (TraceParameter parameter: values()) {
@@ -45,5 +49,10 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
 
     public void put(String key, byte[] value) {
         put(key, new ByteArrayParameter(value));
+    }
+
+    public void put(String key, Serializable object) {
+        System.err.printf(WARNING_GENERIC_OBJECT, object.getClass().getName());
+        put(key, new DefaultTraceParameter(object));
     }
 }
