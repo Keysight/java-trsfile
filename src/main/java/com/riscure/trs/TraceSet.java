@@ -5,6 +5,7 @@ import com.riscure.trs.parameter.trace.TraceParameter;
 import com.riscure.trs.parameter.trace.TraceParameters;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
+import com.riscure.trs.parameter.trace.primitive.ByteArrayParameter;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -141,18 +142,16 @@ public class TraceSet implements AutoCloseable {
                 for (Map.Entry<String, TraceParameterDefinition<? extends TraceParameter>> entry: traceParameterDefinitions.entrySet()) {
                     short length = entry.getValue().getSize();
                     short offset = entry.getValue().getOffset();
-                    Class<? extends TraceParameter> type = entry.getValue().getType();
                     byte[] parameterData = new byte[length];
                     System.arraycopy(data, offset, parameterData, 0, length);
-                    TraceParameter traceParameter = type.getConstructor().newInstance();
+                    TraceParameter traceParameter = getTraceParameter(entry.getValue());
                     traceParameter.deserialize(parameterData);
-
                     traceParameters.put(entry.getKey(), traceParameter);
                 }
 
                 float[] samples = readSamples();
                 return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), traceParameters);
-            } catch (TRSFormatException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+            } catch (TRSFormatException ex) {
                 throw new IOException(ex);
             }
         } else {
@@ -166,6 +165,17 @@ public class TraceSet implements AutoCloseable {
                 throw new IOException(ex);
             }
         }
+    }
+
+    private TraceParameter getTraceParameter(TraceParameterDefinition<? extends TraceParameter> definition) {
+        TraceParameter result = null;
+        try {
+            result = definition.getType().getConstructor().newInstance();
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+            System.err.printf("Failed to instantiate parameter of type %s. Using fallback type of byte[].%n", definition.getType().getName());
+            result = new ByteArrayParameter(new byte[definition.getSize()]);
+        }
+        return result;
     }
 
     /**
