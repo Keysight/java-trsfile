@@ -40,6 +40,7 @@ public class Trace {
      * @param title the trace title
      * @param sample the sample array
      * @param parameters the parameters to be saved with every trace
+     * @throws IOException if there is a problem creating or writing to the trace set file
      * @return a new trace object holding the provided information
      */
     public static Trace create(String title, float[] sample, TraceParameters parameters) throws IOException {
@@ -67,6 +68,7 @@ public class Trace {
      * @param sample the sample array
      * @param sampleFrequency the associated sample frequency
      * @param parameters the parameters to be saved with every trace
+     * @throws IOException if there is a problem creating or writing to the trace set file
      * @return a new trace object holding the provided information
      */
     public static Trace create(String title, float[] sample, float sampleFrequency, TraceParameters parameters) throws IOException {
@@ -111,6 +113,7 @@ public class Trace {
      * @param sample Sample values. Do not modify
      * @param parameters the parameters to be saved with every trace. For backwards compatibility,
      *                   these values are also stored as a raw byte array
+     * @throws IOException if there is a problem creating or writing to the trace set file
      */
     public Trace(String title, float[] sample, TraceParameters parameters) throws IOException {
         this.title = title;
@@ -149,6 +152,7 @@ public class Trace {
      * @param sampleFrequency Sampling frequency at which the samples were acquired.
      * @param parameters the parameters to be saved with every trace. For backwards compatibility,
      *                   these values are also stored as a raw byte array
+     * @throws IOException if there is a problem creating or writing to the trace set file
      */
     public Trace(String title, float[] sample, float sampleFrequency, TraceParameters parameters) throws IOException {
         this(title, sample, parameters);
@@ -321,15 +325,14 @@ public class Trace {
     public TraceSet ts = null;
     /** sample frequency of this trace */
     public float sampleFrequency = 1;
-    /**
-     * Indicates whether the aggregates are valid: hasIllegalValues, isReal,
-     * max, min
-     */
+    /** Indicates whether the aggregates are valid: hasIllegalValues, isReal, max, min */
     private boolean aggregatesValid = false;
     /** whether the trace contains illegal float values */
     private boolean hasIllegalValues = false;
     /** whether the trace contains real values */
     private boolean isReal = false;
     /** maximal value used in trace */
-    private float max = 0, min = 0;
+    private float max = 0;
+    /** minimal value used in trace */
+    private float min = 0;
 }

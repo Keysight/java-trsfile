@@ -1,8 +1,7 @@
 package com.riscure.trs.parameter;
 
 /**
- * This interface indicates that a class represents a parameter that is saved in <emphasis>every trace</emphasis> of
- * a trace set.
+ * This interface represents a parameter that is used in the trace data or the trace set header
  */
 public interface TraceParameter {
     /**

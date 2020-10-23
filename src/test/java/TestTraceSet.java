@@ -14,7 +14,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -22,7 +21,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class TestTraceSet {
     private static Path tempDir;
