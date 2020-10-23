@@ -1,59 +1,49 @@
 package com.riscure.trs.parameter.trace.definition;
 
-import com.riscure.trs.TRSFormatException;
-import com.riscure.trs.parameter.trace.TraceParameter;
+import com.riscure.trs.parameter.ParameterType;
+import com.riscure.trs.parameter.TraceParameter;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 
-public class TraceParameterDefinition<T extends TraceParameter> implements Serializable {
-    private static final String FAILED_TO_INSTANTIATE_TRACE_PARAMETER = "Failed to instantiate TraceParameter. " +
-            "Please make sure that your class has a default (0 argument) constructor.";
-
-    private Class<T> type;
-    private short offset;
-    private short size;
-
-    public TraceParameterDefinition() {}
+public class TraceParameterDefinition<T extends TraceParameter> {
+    private final ParameterType type;
+    private final short offset;
+    private final short length;
 
     public TraceParameterDefinition(T instance, short offset) {
-        this.type = (Class<T>) instance.getClass();
+        this.type = instance.getType();
         this.offset = offset;
-        this.size = (short) instance.length();
+        this.length = (short) instance.length();
     }
 
-    public TraceParameterDefinition(Class<T> type, short offset) throws TRSFormatException {
+    public TraceParameterDefinition(ParameterType type, short length, short offset) {
         this.type = type;
         this.offset = offset;
-        try {
-            this.size = (short) type.getConstructor().newInstance().serialize().length;
-        } catch (InstantiationException | InvocationTargetException |
-                NoSuchMethodException | IllegalAccessException e) {
-            throw new TRSFormatException(FAILED_TO_INSTANTIATE_TRACE_PARAMETER, e);
-        }
+        this.length = length;
     }
 
-    public Class<T> getType() {
+    public void serialize(DataOutputStream dos) throws IOException {
+        dos.writeByte(type.getValue());
+        dos.writeShort(length);
+        dos.writeShort(offset);
+    }
+
+    public static TraceParameterDefinition<TraceParameter> deserialize(DataInputStream dis) throws IOException {
+        ParameterType type = ParameterType.fromValue(dis.readByte());
+        short length = dis.readShort();
+        short offset = dis.readShort();
+        return new TraceParameterDefinition<>(type, length, offset);
+    }
+
+    public ParameterType getType() {
         return type;
-    }
-
-    public void setType(Class<T> type) {
-        this.type = type;
     }
 
     public short getOffset() {
         return offset;
     }
 
-    public void setOffset(short offset) {
-        this.offset = offset;
-    }
-
-    public short getSize() {
-        return size;
-    }
-
-    public void setSize(short size) {
-        this.size = size;
+    public short getLength() {
+        return length;
     }
 }

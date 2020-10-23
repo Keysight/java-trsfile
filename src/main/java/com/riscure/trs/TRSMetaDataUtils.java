@@ -135,7 +135,7 @@ public class TRSMetaDataUtils {
         } else if (trsTag.getType() == TraceSetParameters.class) {
             trsMD.put(trsTag, readTraceSetParameters(buffer, length));
         } else if (trsTag.getType() == TraceParameterDefinitions.class) {
-            trsMD.put(trsTag, readTraceParameters(buffer, length));
+            trsMD.put(trsTag, readTraceParameterDefinitions(buffer, length));
         } else {
             throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, trsTag.getName(), trsTag.getType()));
         }
@@ -172,18 +172,18 @@ public class TRSMetaDataUtils {
 
         try {
             return TraceSetParameters.deserialize(ba);
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             throw new TRSFormatException(e);
         }
     }
 
-    private static TraceParameterDefinitions readTraceParameters(ByteBuffer buffer, int length) throws TRSFormatException {
+    private static TraceParameterDefinitions readTraceParameterDefinitions(ByteBuffer buffer, int length) throws TRSFormatException {
         byte[] ba = new byte[length];
         buffer.get(ba);
 
         try {
             return TraceParameterDefinitions.deserialize(ba);
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             throw new TRSFormatException(e);
         }
     }

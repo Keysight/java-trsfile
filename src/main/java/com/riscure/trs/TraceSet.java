@@ -1,16 +1,14 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.Encoding;
-import com.riscure.trs.parameter.trace.TraceParameter;
+import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.trace.TraceParameters;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
-import com.riscure.trs.parameter.trace.primitive.ByteArrayParameter;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
@@ -49,9 +47,9 @@ public class TraceSet implements AutoCloseable {
     private boolean firstTrace = true;
 
     //Shared variables
-    private TRSMetaData metaData;
+    private final TRSMetaData metaData;
     private boolean open;
-    private boolean writing;        //whether the trace is opened in write mode
+    private final boolean writing;        //whether the trace is opened in write mode
 
     private TraceSet(FileInputStream stream) throws IOException, TRSFormatException {
         this.writing = false;
@@ -135,19 +133,10 @@ public class TraceSet implements AutoCloseable {
         TraceParameterDefinitions traceParameterDefinitions = metaData.getTraceParameterDefinitions();
         if (traceParameterDefinitions != null) {
             try {
-                TraceParameters traceParameters = new TraceParameters();
                 int size = traceParameterDefinitions.totalSize();
                 byte[] data = new byte[size];
                 buffer.get(data);
-                for (Map.Entry<String, TraceParameterDefinition<? extends TraceParameter>> entry: traceParameterDefinitions.entrySet()) {
-                    short length = entry.getValue().getSize();
-                    short offset = entry.getValue().getOffset();
-                    byte[] parameterData = new byte[length];
-                    System.arraycopy(data, offset, parameterData, 0, length);
-                    TraceParameter traceParameter = getTraceParameter(entry.getValue());
-                    traceParameter.deserialize(parameterData);
-                    traceParameters.put(entry.getKey(), traceParameter);
-                }
+                TraceParameters traceParameters = TraceParameters.deserialize(data, traceParameterDefinitions);
 
                 float[] samples = readSamples();
                 return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), traceParameters);
@@ -165,17 +154,6 @@ public class TraceSet implements AutoCloseable {
                 throw new IOException(ex);
             }
         }
-    }
-
-    private TraceParameter getTraceParameter(TraceParameterDefinition<? extends TraceParameter> definition) {
-        TraceParameter result = null;
-        try {
-            result = definition.getType().getConstructor().newInstance();
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
-            System.err.printf("Failed to instantiate parameter of type %s. Using fallback type of byte[].%n", definition.getType().getName());
-            result = new ByteArrayParameter(new byte[definition.getSize()]);
-        }
-        return result;
     }
 
     /**
@@ -217,9 +195,9 @@ public class TraceSet implements AutoCloseable {
             if (definitions == null) {  //user didn't pre-define the offsets etc, so we add them in the order they were added
                 definitions = new TraceParameterDefinitions();
                 short offset = 0;
-                for (Map.Entry<String, TraceParameter> parameter : parameters.entrySet()) {
-                    definitions.put(parameter.getKey(), new TraceParameterDefinition<>(parameter.getValue(), offset));
-                    offset += parameter.getValue().serialize().length;
+                for (Map.Entry<String, TraceParameter> entry : parameters.entrySet()) {
+                    definitions.put(entry.getKey(), new TraceParameterDefinition<>(entry.getValue(), offset));
+                    offset += entry.getValue().length() * entry.getValue().getType().getByteSize();
                 }
                 metaData.put(TRACE_PARAMETER_DEFINITIONS, definitions);
             }
@@ -428,8 +406,9 @@ public class TraceSet implements AutoCloseable {
      * @throws TRSFormatException when any incorrect formatting of the TRS file is encountered
      */
     public static TraceSet open(String file) throws IOException, TRSFormatException {
-        FileInputStream fis = new FileInputStream(file);
-        return new TraceSet(fis);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            return new TraceSet(fis);
+        }
     }
 
     /**

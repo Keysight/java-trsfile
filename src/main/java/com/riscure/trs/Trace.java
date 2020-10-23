@@ -115,7 +115,7 @@ public class Trace {
     public Trace(String title, float[] sample, TraceParameters parameters) throws IOException {
         this.title = title;
         this.sample = FloatBuffer.wrap(sample);
-        this.data = parameters.serialize();
+        this.data = parameters.toByteArray();
         this.parameters = parameters;
     }
 
