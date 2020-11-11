@@ -1,7 +1,9 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.Encoding;
+import com.riscure.trs.parameter.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
+import com.riscure.trs.parameter.primitive.StringParameter;
 import com.riscure.trs.parameter.trace.TraceParameters;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
@@ -11,6 +13,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.*;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -180,8 +186,9 @@ public class TraceSet implements AutoCloseable {
         int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
         int dataLength = metaData.getInt(DATA_LENGTH);
         float sampleFrequency = 1f/metaData.getFloat(SCALE_X);
+        allTraceParametersHaveDefinitions(trace, metaData.getTraceParameterDefinitions());
+        truncateStrings(trace, metaData);
         checkValid(trace, numberOfSamples, dataLength, sampleFrequency);
-        checkValid(trace, metaData.getTraceParameterDefinitions());
 
         writeTrace(trace);
 
@@ -209,7 +216,7 @@ public class TraceSet implements AutoCloseable {
      * @param trace the trace to check
      * @param definitions the definitions to check the trace against
      */
-    private void checkValid(Trace trace, TraceParameterDefinitions definitions) throws TRSFormatException {
+    private void allTraceParametersHaveDefinitions(Trace trace, TraceParameterDefinitions definitions) throws TRSFormatException {
         if (trace.getParameters() != null) {
             for (Map.Entry<String, TraceParameter> entry : trace.getParameters().entrySet()) {
                 if (!definitions.containsKey(entry.getKey())) {
@@ -219,10 +226,69 @@ public class TraceSet implements AutoCloseable {
         }
     }
 
+    /**
+     * This method makes sure that the trace title and any added string parameters adhere to the preset maximum length
+     * @param trace the trace to update
+     * @param metaData the metadata specifying the maximum string lengths
+     */
+    private void truncateStrings(Trace trace, TRSMetaData metaData) throws IOException {
+        int titleSpace = metaData.getInt(TITLE_SPACE);
+        String title = trace.getTitle();
+        if (title != null && titleSpace < title.getBytes(StandardCharsets.UTF_8).length) {
+            trace.setTitle(fitUtf8StringToByteLength(title, titleSpace));
+        }
+        TraceParameterDefinitions traceParameterDefinitions = metaData.getTraceParameterDefinitions();
+        if (traceParameterDefinitions != null) {
+            boolean needsUpdate = false;
+            for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> definition : traceParameterDefinitions.entrySet()) {
+                TraceParameterDefinition<TraceParameter> value = definition.getValue();
+                String key = definition.getKey();
+                if (value.getType() == ParameterType.STRING) {
+                    short stringLength = value.getLength();
+                    String stringValue = ((StringParameter) trace.getParameters().get(key)).getValue();
+                    if (stringLength != stringValue.getBytes(StandardCharsets.UTF_8).length) {
+                        trace.getParameters().put(key, fitUtf8StringToByteLength(stringValue, stringLength));
+                        needsUpdate = true;
+                    }
+                }
+            }
+            if (needsUpdate) {
+                //overwrite the legacy data array with the truncated versions of the strings
+                trace.setData(trace.getParameters().toByteArray());
+            }
+        }
+    }
+
+    /**
+     * Fits a string to the number of characters that fit in X bytes avoiding multi byte characters being cut in
+     * half at the cut off point. Also handles surrogate pairs where 2 characters in the string is actually one literal
+     * character. If the string is too long, it is truncated. If it's too short, it's padded with NUL characters.
+     * @param s the string to fit
+     * @param maxBytes the number of bytes required
+     */
+    private String fitUtf8StringToByteLength(String s, int maxBytes) {
+        if (s == null) {
+            return null;
+        }
+        Charset charset = StandardCharsets.UTF_8;
+        CharsetDecoder decoder = charset.newDecoder();
+        byte[] sba = s.getBytes(charset);
+        if (sba.length <= maxBytes) {
+            return new String(Arrays.copyOf(sba, maxBytes));
+        }
+        // Ensure truncation by having byte buffer = maxBytes
+        ByteBuffer bb = ByteBuffer.wrap(sba, 0, maxBytes);
+        CharBuffer cb = CharBuffer.allocate(maxBytes);
+        // Ignore an incomplete character
+        decoder.onMalformedInput(CodingErrorAction.IGNORE);
+        decoder.decode(bb, cb, true);
+        decoder.flush(cb);
+        return new String(cb.array(), 0, cb.position());
+    }
+
     private void writeTrace(Trace trace) throws TRSFormatException, IOException {
         String title = trace.getTitle() == null ? "" : trace.getTitle();
-        int titleSpace = metaData.getInt(TITLE_SPACE);
-        writeStream.write(Arrays.copyOf(title.getBytes(), titleSpace));
+        writeStream.write(title.getBytes(StandardCharsets.UTF_8));
         byte[] data = trace.getData() == null ? new byte[0] : trace.getData();
         writeStream.write(data);
         Encoding encoding = Encoding.fromValue(metaData.getInt(SAMPLE_CODING));
