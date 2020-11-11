@@ -32,10 +32,10 @@ public class TestTraceSet {
     private static final String FLOATS_TRS = "floats.trs";
     private static final String TRS = ".trs";
     private static final int NUMBER_OF_TRACES = 1024;
-    private static final float[] byteSamples = new float[]{1, 2, 3, 4, 5};
-    private static final float[] shortSamples = new float[]{1, 2, 3, 4, Byte.MAX_VALUE+1};
-    private static final float[] intSamples = new float[]{1, 2, 3, 4, Short.MAX_VALUE+1};
-    private static final float[] floatSamples = new float[]{1, 2, 3, 4, 5.1f};
+    private static final float[] BYTE_SAMPLES = new float[]{1, 2, 3, 4, 5};
+    private static final float[] SHORT_SAMPLES = new float[]{1, 2, 3, 4, Byte.MAX_VALUE+1};
+    private static final float[] INT_SAMPLES = new float[]{1, 2, 3, 4, Short.MAX_VALUE+1};
+    private static final float[] FLOAT_SAMPLES = new float[]{1, 2, 3, 4, 5.1f};
     private static final String TVLA_STRING_VALUE = "Trace set contains the following TVLA sets: Random, R5S-Box_Out\n" +
             "AES-128 ENCRYPT (Input -> Output) Round 5 S-Box Out:HW(3~7)";
 
@@ -45,25 +45,25 @@ public class TestTraceSet {
 
         try (TraceSet writable = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + BYTES_TRS)) {
             for (int k = 0; k < NUMBER_OF_TRACES; k++) {
-                writable.add(Trace.create(byteSamples));
+                writable.add(Trace.create(BYTE_SAMPLES));
             }
         }
 
         try (TraceSet writable = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + SHORTS_TRS)) {
             for (int k = 0; k < NUMBER_OF_TRACES; k++) {
-                writable.add(Trace.create(shortSamples));
+                writable.add(Trace.create(SHORT_SAMPLES));
             }
         }
 
         try (TraceSet writable = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + INTS_TRS)) {
             for (int k = 0; k < NUMBER_OF_TRACES; k++) {
-                writable.add(Trace.create(intSamples));
+                writable.add(Trace.create(INT_SAMPLES));
             }
         }
 
         try (TraceSet writable = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + FLOATS_TRS)) {
             for (int k = 0; k < NUMBER_OF_TRACES; k++) {
-                writable.add(Trace.create(floatSamples));
+                writable.add(Trace.create(FLOAT_SAMPLES));
             }
         }
     }
@@ -99,7 +99,7 @@ public class TestTraceSet {
             for (int k = 0; k < NUMBER_OF_TRACES; k++) {
                 Trace t = readable.get(k);
                 assertEquals(Encoding.BYTE.getValue(), t.getPreferredCoding());
-                assertArrayEquals(byteSamples, readable.get(k).getSample(), 0.01f);
+                assertArrayEquals(BYTE_SAMPLES, readable.get(k).getSample(), 0.01f);
             }
         }
     }
@@ -114,7 +114,7 @@ public class TestTraceSet {
             for (int k = 0; k < NUMBER_OF_TRACES; k++) {
                 Trace t = readable.get(k);
                 assertEquals(Encoding.SHORT.getValue(), t.getPreferredCoding());
-                assertArrayEquals(shortSamples, readable.get(k).getSample(), 0.01f);
+                assertArrayEquals(SHORT_SAMPLES, readable.get(k).getSample(), 0.01f);
             }
         }
     }
@@ -129,7 +129,7 @@ public class TestTraceSet {
             for (int k = 0; k < NUMBER_OF_TRACES; k++) {
                 Trace t = readable.get(k);
                 assertEquals(Encoding.INT.getValue(), t.getPreferredCoding());
-                assertArrayEquals(intSamples, readable.get(k).getSample(), 0.01f);
+                assertArrayEquals(INT_SAMPLES, readable.get(k).getSample(), 0.01f);
             }
         }
     }
@@ -144,7 +144,7 @@ public class TestTraceSet {
             for (int k = 0; k < NUMBER_OF_TRACES; k++) {
                 Trace t = readable.get(k);
                 assertEquals(Encoding.FLOAT.getValue(), t.getPreferredCoding());
-                assertArrayEquals(floatSamples, readable.get(k).getSample(), 0.01f);
+                assertArrayEquals(FLOAT_SAMPLES, readable.get(k).getSample(), 0.01f);
             }
         }
     }
@@ -205,7 +205,7 @@ public class TestTraceSet {
         try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name, metaData)) {
             TraceParameters parameters = new TraceParameters();
             parameters.put(parameterName, 1);
-            traceWithParameters.add(Trace.create("", floatSamples, parameters));
+            traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
         }
         //READ BACK AND CHECK RESULT
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
@@ -244,7 +244,54 @@ public class TestTraceSet {
                 parameters.put("LONGARRAY", new long[]{k, k, k});
                 parameters.put("DOUBLEARRAY", new double[]{k, k, k});
                 //parameters.put("SERIALIZABLE", new XYZDefaultTestData(k % 5, k / 5, k));
-                traceWithParameters.add(Trace.create("", floatSamples, parameters));
+                traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
+                testParameters.add(parameters);
+            }
+        }
+        //READ BACK AND CHECK RESULT
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+            TraceParameterDefinitions parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
+            for (int k = 0; k < 25; k++) {
+                assertEquals(parameterDefinitions.size(), testParameters.get(k).size());
+                Trace trace = readable.get(k);
+                TraceParameters correctValue = testParameters.get(k);
+                parameterDefinitions.forEach((key, parameter) -> {
+                    TraceParameter traceParameter = trace.getParameters().get(key);
+                    assertEquals(traceParameter, correctValue.get(key));
+                });
+            }
+        }
+    }
+
+    /**
+     * This tests whether any strings added to the trace are handled as specified:
+     * - if no length is specified, the first string is leading
+     * - if a string is longer than the length specified, it should be truncated
+     * - when truncated, a string should still be valid UTF-8 (truncated at character level, not byte level)
+     *
+     * @throws IOException
+     * @throws TRSFormatException
+     */
+    @Test
+    public void testWriteTraceParametersVaryingStringLength() throws IOException, TRSFormatException {
+        TRSMetaData metaData = new TRSMetaData();
+        metaData.put(TRSTag.TRS_VERSION, 2);
+        List<TraceParameters> testParameters = new ArrayList<>();
+        List<String> strings = new ArrayList<>();
+        strings.add("abcd");
+        strings.add("abcdefgh");
+        strings.add("ab");
+        strings.add("abcdefgh汉字");
+        //CREATE TRACE
+        String name = UUID.randomUUID().toString() + TRS;
+        try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name, metaData)) {
+            for (int k = 0; k < 25; k++) {
+                TraceParameters parameters = new TraceParameters();
+                parameters.put("BYTEARRAY", new byte[]{(byte) k, (byte) k, (byte) k});
+                parameters.put(TraceParameter.SAMPLES, new float[]{(float) k, (float) k, (float) k});
+                parameters.put("name", strings.get(k % strings.size()));
+                //parameters.put("SERIALIZABLE", new XYZDefaultTestData(k % 5, k / 5, k));
+                traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
                 testParameters.add(parameters);
             }
         }
