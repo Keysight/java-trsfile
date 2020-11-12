@@ -9,6 +9,7 @@ import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.*;
@@ -17,6 +18,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -56,12 +59,14 @@ public class TraceSet implements AutoCloseable {
     private final TRSMetaData metaData;
     private boolean open;
     private final boolean writing;        //whether the trace is opened in write mode
+    private final Path path;
 
-    private TraceSet(FileInputStream stream) throws IOException, TRSFormatException {
+    private TraceSet(String inputFileName) throws IOException, TRSFormatException {
         this.writing = false;
         this.open = true;
-        this.readStream = stream;
-        this.channel = stream.getChannel();
+        this.path = Paths.get(inputFileName);
+        this.readStream = new FileInputStream(inputFileName);
+        this.channel = readStream.getChannel();
 
         //the file might be bigger than the buffer, in which case we partially buffer it in memory
         this.fileSize = this.channel.size();
@@ -73,11 +78,19 @@ public class TraceSet implements AutoCloseable {
         this.metaDataSize = buffer.position();
     }
 
-    private TraceSet(FileOutputStream stream, TRSMetaData metaData) {
+    private TraceSet(String outputFileName, TRSMetaData metaData) throws FileNotFoundException {
         this.open = true;
         this.writing = true;
         this.metaData = metaData;
-        this.writeStream = stream;
+        this.path = Paths.get(outputFileName);
+        this.writeStream = new FileOutputStream(outputFileName);
+    }
+
+    /**
+     * @return the Path on disk of this trace set
+     */
+    public Path getPath() {
+        return path;
     }
 
     private void mapBuffer() throws IOException {
@@ -472,9 +485,7 @@ public class TraceSet implements AutoCloseable {
      * @throws TRSFormatException when any incorrect formatting of the TRS file is encountered
      */
     public static TraceSet open(String file) throws IOException, TRSFormatException {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            return new TraceSet(fis);
-        }
+        return new TraceSet(file);
     }
 
     /**
@@ -539,8 +550,6 @@ public class TraceSet implements AutoCloseable {
      * @throws IOException if the file creation failed
      */
     public static TraceSet create(String file, TRSMetaData metaData) throws IOException {
-        FileOutputStream fos = new FileOutputStream(file);
-
-        return new TraceSet(fos, metaData);
+        return new TraceSet(file, metaData);
     }
 }
