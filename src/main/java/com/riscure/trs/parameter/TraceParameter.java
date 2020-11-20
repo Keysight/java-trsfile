@@ -5,6 +5,10 @@ package com.riscure.trs.parameter;
  */
 public interface TraceParameter {
     String SAMPLES = "SAMPLES";
+    String TITLE = "TITLE";
+    String INPUT = "INPUT";
+    String OUTPUT = "OUTPUT";
+    String KEY = "KEY";
 
     /**
      * The number of values of this type in this parameter

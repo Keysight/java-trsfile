@@ -243,7 +243,6 @@ public class TestTraceSet {
                 parameters.put("FLOATARRAY", new float[]{(float) k, (float) k, (float) k});
                 parameters.put("LONGARRAY", new long[]{k, k, k});
                 parameters.put("DOUBLEARRAY", new double[]{k, k, k});
-                //parameters.put("SERIALIZABLE", new XYZDefaultTestData(k % 5, k / 5, k));
                 traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
                 testParameters.add(parameters);
             }
@@ -289,8 +288,7 @@ public class TestTraceSet {
                 TraceParameters parameters = new TraceParameters();
                 parameters.put("BYTEARRAY", new byte[]{(byte) k, (byte) k, (byte) k});
                 parameters.put(TraceParameter.SAMPLES, new float[]{(float) k, (float) k, (float) k});
-                parameters.put("name", strings.get(k % strings.size()));
-                //parameters.put("SERIALIZABLE", new XYZDefaultTestData(k % 5, k / 5, k));
+                parameters.put(TraceParameter.TITLE, strings.get(k % strings.size()));
                 traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
                 testParameters.add(parameters);
             }
