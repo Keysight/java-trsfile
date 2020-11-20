@@ -7,6 +7,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class StringParameter implements TraceParameter {
@@ -39,6 +40,11 @@ public class StringParameter implements TraceParameter {
 
     @Override
     public String getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
         return value;
     }
 
