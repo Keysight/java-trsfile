@@ -1,6 +1,7 @@
 package com.riscure.trs.parameter.trace.definition;
 
 import com.riscure.trs.parameter.TraceParameter;
+import com.riscure.trs.parameter.trace.TraceParameters;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -54,5 +55,21 @@ public class TraceParameterDefinitions extends LinkedHashMap<String, TraceParame
             }
         }
         return result;
+    }
+
+    /**
+     * Create a set of definitions based on the parameters present in a trace.
+     * @param parameters the parameters of the trace
+     */
+    public static TraceParameterDefinitions createFrom(TraceParameters parameters) {
+        TraceParameterDefinitions definitions = new TraceParameterDefinitions();
+        if (!parameters.isEmpty()) {
+            short offset = 0;
+            for (Map.Entry<String, TraceParameter> entry : parameters.entrySet()) {
+                definitions.put(entry.getKey(), new TraceParameterDefinition<>(entry.getValue(), offset));
+                offset += entry.getValue().length() * entry.getValue().getType().getByteSize();
+            }
+        }
+        return definitions;
     }
 }

@@ -1,7 +1,6 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.Encoding;
-import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.StringParameter;
@@ -193,50 +192,17 @@ public class TraceSet implements AutoCloseable {
             metaData.put(TITLE_SPACE, titleLength, false);
             metaData.put(SCALE_X, 1f/trace.getSampleFrequency(), false);
             metaData.put(SAMPLE_CODING, trace.getPreferredCoding(), false);
-            addTraceParameterDefinitions(trace.getParameters());
+            metaData.put(TRACE_PARAMETER_DEFINITIONS, TraceParameterDefinitions.createFrom(trace.getParameters()));
             TRSMetaDataUtils.writeTRSMetaData(writeStream, metaData);
             firstTrace = false;
         }
-        int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
-        int dataLength = metaData.getInt(DATA_LENGTH);
-        float sampleFrequency = 1f/metaData.getFloat(SCALE_X);
-        allTraceParametersHaveDefinitions(trace, metaData.getTraceParameterDefinitions());
         truncateStrings(trace, metaData);
-        checkValid(trace, numberOfSamples, dataLength, sampleFrequency);
+        checkValid(trace);
 
         writeTrace(trace);
 
         int numberOfTraces = metaData.getInt(NUMBER_OF_TRACES);
         metaData.put(NUMBER_OF_TRACES, numberOfTraces + 1);
-    }
-
-    /**
-     * Create a set of definitions based on the values present in the trace.
-     * @param parameters the parameters of the trace
-     */
-    private void addTraceParameterDefinitions(TraceParameters parameters) {
-        TraceParameterDefinitions definitions = metaData.getTraceParameterDefinitions();
-        if (definitions.isEmpty() && !parameters.isEmpty()) {
-            short offset = 0;
-            for (Map.Entry<String, TraceParameter> entry : parameters.entrySet()) {
-                definitions.put(entry.getKey(), new TraceParameterDefinition<>(entry.getValue(), offset));
-                offset += entry.getValue().length() * entry.getValue().getType().getByteSize();
-            }
-            metaData.put(TRACE_PARAMETER_DEFINITIONS, definitions);
-        }
-    }
-
-    /**
-     * Check whether all the parameters used in the trace are defined in the header
-     * @param trace the trace to check
-     * @param definitions the definitions to check the trace against
-     */
-    private void allTraceParametersHaveDefinitions(Trace trace, TraceParameterDefinitions definitions) throws TRSFormatException {
-        for (Map.Entry<String, TraceParameter> entry : trace.getParameters().entrySet()) {
-            if (!definitions.containsKey(entry.getKey())) {
-                throw new TRSFormatException(String.format(PARAMETER_NOT_DEFINED, entry.getKey()));
-            }
-        }
     }
 
     /**
@@ -360,22 +326,33 @@ public class TraceSet implements AutoCloseable {
         else closeReader();
     }
 
-    private void checkValid(Trace trace, int numberOfSamples, int dataLength, float sampleFrequency) {
-        if (numberOfSamples != trace.getNumberOfSamples()) {
+    private void checkValid(Trace trace) {
+        int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
+        if (metaData.getInt(NUMBER_OF_SAMPLES) != trace.getNumberOfSamples()) {
             throw new IllegalArgumentException(String.format(TRACE_LENGTH_DIFFERS,
                     trace.getNumberOfSamples(),
                     numberOfSamples));
         }
+
+        int dataLength = metaData.getInt(DATA_LENGTH);
         int traceDataLength = trace.getData() == null ? 0 : trace.getData().length;
-        if (dataLength != traceDataLength) {
+        if (metaData.getInt(DATA_LENGTH) != traceDataLength) {
             throw new IllegalArgumentException(String.format(TRACE_DATA_LENGTH_DIFFERS,
                     traceDataLength,
                     dataLength));
         }
+
+        float sampleFrequency = 1f/metaData.getFloat(SCALE_X);
         if (sampleFrequency != trace.getSampleFrequency()) {
             throw new IllegalArgumentException(String.format(TRACE_SAMPLING_FREQUENCY_DIFFERS,
                     trace.getSampleFrequency(),
                     sampleFrequency));
+        }
+
+        for (Map.Entry<String, TraceParameter> entry : trace.getParameters().entrySet()) {
+            if (!metaData.getTraceParameterDefinitions().containsKey(entry.getKey())) {
+                throw new IllegalArgumentException(String.format(PARAMETER_NOT_DEFINED, entry.getKey()));
+            }
         }
     }
 
