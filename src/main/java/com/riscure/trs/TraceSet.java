@@ -187,7 +187,7 @@ public class TraceSet implements AutoCloseable {
         if (!writing) throw new IllegalArgumentException(TRACE_SET_IN_READ_MODE);
         if (firstTrace) {
             int dataLength = trace.getData() == null ? 0 : trace.getData().length;
-            int titleLength = trace.getTitle() == null ? 0 : trace.getTitle().length();
+            int titleLength = trace.getTitle() == null ? 0 : trace.getTitle().getBytes(StandardCharsets.UTF_8).length;
             metaData.put(NUMBER_OF_SAMPLES, trace.getNumberOfSamples(), false);
             metaData.put(DATA_LENGTH, dataLength, false);
             metaData.put(TITLE_SPACE, titleLength, false);

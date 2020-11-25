@@ -7,6 +7,7 @@ import com.riscure.trs.parameter.traceset.TraceSetParameters;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class TRSMetaDataUtils {
     private static final String IGNORED_UNKNOWN_TAG = "ignored unknown metadata tag '%02X' while reading a TRS file\n";
@@ -32,9 +33,9 @@ public class TRSMetaDataUtils {
             fos.write(tag.getValue());
             if (tag.getType() == String.class) {
                 String s = metaData.getString(tag);
-                int len = s.length();
-                writeLength(fos, len);
-                fos.write(s.getBytes());
+                byte[] stringBytes = s.getBytes(StandardCharsets.UTF_8);
+                writeLength(fos, stringBytes.length);
+                fos.write(stringBytes);
             } else if (tag.getType() == Float.class) {
                 float f = metaData.getFloat(tag);
                 writeLength(fos, tag.getLength());
@@ -163,7 +164,7 @@ public class TRSMetaDataUtils {
         byte[] ba = new byte[length];
         buffer.get(ba);
 
-        return new String(ba);
+        return new String(ba, StandardCharsets.UTF_8);
     }
 
     private static TraceSetParameters readTraceSetParameters(ByteBuffer buffer, int length) throws TRSFormatException {
