@@ -325,7 +325,7 @@ public class Trace {
     public TraceSet ts = null;
     /** sample frequency of this trace */
     public float sampleFrequency = 1;
-    /** Indicates whether the aggregates are valid: hasIllegalValues, isReal, max, min */
+    /** Indicates whether the aggregates ({@link Trace#hasIllegalValues}, {@link Trace#isReal} {@link Trace#max}, {@link Trace#min}) are valid. */
     private boolean aggregatesValid = false;
     /** whether the trace contains illegal float values */
     private boolean hasIllegalValues = false;
