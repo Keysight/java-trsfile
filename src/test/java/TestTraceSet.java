@@ -149,6 +149,20 @@ public class TestTraceSet {
         }
     }
 
+    @Test
+    public void testUTF8Title() throws IOException, TRSFormatException {
+        String title = "씨브 크레그스만";
+        String name = UUID.randomUUID().toString() + TRS;
+        try (TraceSet ts = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+            ts.add(Trace.create(title, new float[0], new TraceParameters()));
+        } catch (TRSFormatException e) {
+            throw e;
+        }
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+            assertEquals(title, readable.get(0).getTitle());
+        }
+    }
+
     /**
      * This tests adding several different types of information to the trace set header. The three parameters are chosen
      * to match the three major cases: Strings, primitives, and arbitrary (serializable) objects.
