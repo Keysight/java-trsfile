@@ -212,7 +212,7 @@ public class TraceSet implements AutoCloseable {
     private void addTraceParameterDefinitions(TraceParameters parameters) {
         if (parameters != null) {
             TraceParameterDefinitions definitions = metaData.getTraceParameterDefinitions();
-            if (definitions == null) {  //user didn't pre-define the offsets etc, so we add them in the order they were added
+            if (definitions.isEmpty() && !parameters.isEmpty()) {  //user didn't pre-define the offsets etc, so we add them in the order they were added
                 definitions = new TraceParameterDefinitions();
                 short offset = 0;
                 for (Map.Entry<String, TraceParameter> entry : parameters.entrySet()) {
@@ -251,24 +251,22 @@ public class TraceSet implements AutoCloseable {
             trace.setTitle(fitUtf8StringToByteLength(title, titleSpace));
         }
         TraceParameterDefinitions traceParameterDefinitions = metaData.getTraceParameterDefinitions();
-        if (traceParameterDefinitions != null) {
-            boolean needsUpdate = false;
-            for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> definition : traceParameterDefinitions.entrySet()) {
-                TraceParameterDefinition<TraceParameter> value = definition.getValue();
-                String key = definition.getKey();
-                if (value.getType() == ParameterType.STRING) {
-                    short stringLength = value.getLength();
-                    String stringValue = ((StringParameter) trace.getParameters().get(key)).getValue();
-                    if (stringLength != stringValue.getBytes(StandardCharsets.UTF_8).length) {
-                        trace.getParameters().put(key, fitUtf8StringToByteLength(stringValue, stringLength));
-                        needsUpdate = true;
-                    }
+        boolean needsUpdate = false;
+        for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> definition : traceParameterDefinitions.entrySet()) {
+            TraceParameterDefinition<TraceParameter> value = definition.getValue();
+            String key = definition.getKey();
+            if (value.getType() == ParameterType.STRING) {
+                short stringLength = value.getLength();
+                String stringValue = ((StringParameter) trace.getParameters().get(key)).getValue();
+                if (stringLength != stringValue.getBytes(StandardCharsets.UTF_8).length) {
+                    trace.getParameters().put(key, fitUtf8StringToByteLength(stringValue, stringLength));
+                    needsUpdate = true;
                 }
             }
-            if (needsUpdate) {
-                //overwrite the legacy data array with the truncated versions of the strings
-                trace.setData(trace.getParameters().toByteArray());
-            }
+        }
+        if (needsUpdate) {
+            //overwrite the legacy data array with the truncated versions of the strings
+            trace.setData(trace.getParameters().toByteArray());
         }
     }
 

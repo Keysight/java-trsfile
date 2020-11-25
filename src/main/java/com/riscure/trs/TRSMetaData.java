@@ -106,7 +106,7 @@ public class TRSMetaData {
     }
 
     /**
-     * Get the TraceSetParameters of this trace set, or null if they are undefined
+     * Get the TraceSetParameters of this trace set, or an empty set if they are undefined
      * @return the TraceSetParameters of this trace set
      */
     public TraceSetParameters getTraceSetParameters() {
@@ -114,11 +114,11 @@ public class TRSMetaData {
         if (o instanceof TraceSetParameters) {
             return (TraceSetParameters) o;
         }
-        return null;
+        return new TraceSetParameters();
     }
 
     /**
-     * Get the TraceParameterDefinitions of this trace set, or null if they are undefined
+     * Get the TraceParameterDefinitions of this trace set, or an empty set if they are undefined
      * @return the TraceParameterDefinitions of this trace set
      */
     public TraceParameterDefinitions getTraceParameterDefinitions() {
@@ -126,7 +126,7 @@ public class TRSMetaData {
         if (o instanceof TraceParameterDefinitions) {
             return (TraceParameterDefinitions) o;
         }
-        return null;
+        return new TraceParameterDefinitions();
     }
 
     /**
