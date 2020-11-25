@@ -1,6 +1,7 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.Encoding;
+import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.StringParameter;
@@ -149,8 +150,8 @@ public class TraceSet implements AutoCloseable {
             traceTitle = String.format("%s %d", metaData.getString(GLOBAL_TITLE), index);
         }
 
-        TraceParameterDefinitions traceParameterDefinitions = metaData.getTraceParameterDefinitions();
-        if (traceParameterDefinitions != null) {
+        if (metaData.getInt(TRS_VERSION) > 1) {
+            TraceParameterDefinitions traceParameterDefinitions = metaData.getTraceParameterDefinitions();
             try {
                 int size = traceParameterDefinitions.totalSize();
                 byte[] data = new byte[size];
@@ -209,18 +210,19 @@ public class TraceSet implements AutoCloseable {
         metaData.put(NUMBER_OF_TRACES, numberOfTraces + 1);
     }
 
+    /**
+     * Create a set of definitions based on the values present in the trace.
+     * @param parameters the parameters of the trace
+     */
     private void addTraceParameterDefinitions(TraceParameters parameters) {
-        if (parameters != null) {
-            TraceParameterDefinitions definitions = metaData.getTraceParameterDefinitions();
-            if (definitions.isEmpty() && !parameters.isEmpty()) {  //user didn't pre-define the offsets etc, so we add them in the order they were added
-                definitions = new TraceParameterDefinitions();
-                short offset = 0;
-                for (Map.Entry<String, TraceParameter> entry : parameters.entrySet()) {
-                    definitions.put(entry.getKey(), new TraceParameterDefinition<>(entry.getValue(), offset));
-                    offset += entry.getValue().length() * entry.getValue().getType().getByteSize();
-                }
-                metaData.put(TRACE_PARAMETER_DEFINITIONS, definitions);
+        TraceParameterDefinitions definitions = metaData.getTraceParameterDefinitions();
+        if (definitions.isEmpty() && !parameters.isEmpty()) {
+            short offset = 0;
+            for (Map.Entry<String, TraceParameter> entry : parameters.entrySet()) {
+                definitions.put(entry.getKey(), new TraceParameterDefinition<>(entry.getValue(), offset));
+                offset += entry.getValue().length() * entry.getValue().getType().getByteSize();
             }
+            metaData.put(TRACE_PARAMETER_DEFINITIONS, definitions);
         }
     }
 
@@ -230,11 +232,9 @@ public class TraceSet implements AutoCloseable {
      * @param definitions the definitions to check the trace against
      */
     private void allTraceParametersHaveDefinitions(Trace trace, TraceParameterDefinitions definitions) throws TRSFormatException {
-        if (trace.getParameters() != null) {
-            for (Map.Entry<String, TraceParameter> entry : trace.getParameters().entrySet()) {
-                if (!definitions.containsKey(entry.getKey())) {
-                    throw new TRSFormatException(String.format(PARAMETER_NOT_DEFINED, entry.getKey()));
-                }
+        for (Map.Entry<String, TraceParameter> entry : trace.getParameters().entrySet()) {
+            if (!definitions.containsKey(entry.getKey())) {
+                throw new TRSFormatException(String.format(PARAMETER_NOT_DEFINED, entry.getKey()));
             }
         }
     }
@@ -548,6 +548,7 @@ public class TraceSet implements AutoCloseable {
      * @throws IOException if the file creation failed
      */
     public static TraceSet create(String file, TRSMetaData metaData) throws IOException {
+        metaData.put(TRS_VERSION, 2, false);
         return new TraceSet(file, metaData);
     }
 }

@@ -312,7 +312,7 @@ public class Trace {
     }
 
     /** A map of all custom named trace parameters */
-    private TraceParameters parameters;
+    private TraceParameters parameters = new TraceParameters();
     /** list of samples */
     private FloatBuffer sample;
     /** trace title */

@@ -158,8 +158,7 @@ public class TestTraceSet {
      */
     @Test
     public void testWriteTraceSetParameters() throws IOException, TRSFormatException {
-        TRSMetaData metaData = new TRSMetaData();
-        metaData.put(TRSTag.TRS_VERSION, 2);
+        TRSMetaData metaData = TRSMetaData.create();
         TraceSetParameters parameters = new TraceSetParameters();
         parameters.put("BYTE", (byte)1);
         parameters.put("SHORT", (short)2);
@@ -197,9 +196,8 @@ public class TestTraceSet {
      */
     @Test(expected = TRSFormatException.class)
     public void testWriteTraceParametersInvalidName() throws IOException, TRSFormatException {
-        TRSMetaData metaData = new TRSMetaData();
+        TRSMetaData metaData = TRSMetaData.create();
         String parameterName = String.format("%100000s", "XYZ");
-        metaData.put(TRSTag.TRS_VERSION, 2);
         //CREATE TRACE
         String name = UUID.randomUUID().toString() + TRS;
         try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name, metaData)) {
@@ -222,8 +220,7 @@ public class TestTraceSet {
      */
     @Test
     public void testWritePrimitiveTraceParametersNoDefinitions() throws IOException, TRSFormatException {
-        TRSMetaData metaData = new TRSMetaData();
-        metaData.put(TRSTag.TRS_VERSION, 2);
+        TRSMetaData metaData = TRSMetaData.create();
         List<TraceParameters> testParameters = new ArrayList<>();
         //CREATE TRACE
         String name = UUID.randomUUID().toString() + TRS;
@@ -273,8 +270,7 @@ public class TestTraceSet {
      */
     @Test
     public void testWriteTraceParametersVaryingStringLength() throws IOException, TRSFormatException {
-        TRSMetaData metaData = new TRSMetaData();
-        metaData.put(TRSTag.TRS_VERSION, 2);
+        TRSMetaData metaData = TRSMetaData.create();
         List<TraceParameters> testParameters = new ArrayList<>();
         List<String> strings = new ArrayList<>();
         strings.add("abcd");

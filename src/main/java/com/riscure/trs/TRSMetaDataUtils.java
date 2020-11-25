@@ -86,7 +86,7 @@ public class TRSMetaDataUtils {
      * @throws TRSFormatException If either the file is corrupt or the reader is not positioned at the start of the file
      */
     public static TRSMetaData readTRSMetaData(ByteBuffer buffer) throws TRSFormatException {
-        TRSMetaData trs = new TRSMetaData();
+        TRSMetaData trs = TRSMetaData.create();
         byte tag;
 
         //We keep on reading meta data until we hit tag TB=0x5f
