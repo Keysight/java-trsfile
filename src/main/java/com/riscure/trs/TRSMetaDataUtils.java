@@ -1,10 +1,13 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.TRSTag;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class TRSMetaDataUtils {
     private static final String IGNORED_UNKNOWN_TAG = "ignored unknown metadata tag '%02X' while reading a TRS file\n";
@@ -30,9 +33,9 @@ public class TRSMetaDataUtils {
             fos.write(tag.getValue());
             if (tag.getType() == String.class) {
                 String s = metaData.getString(tag);
-                int len = s.length();
-                writeLength(fos, len);
-                fos.write(s.getBytes());
+                byte[] stringBytes = s.getBytes(StandardCharsets.UTF_8);
+                writeLength(fos, stringBytes.length);
+                fos.write(stringBytes);
             } else if (tag.getType() == Float.class) {
                 float f = metaData.getFloat(tag);
                 writeLength(fos, tag.getLength());
@@ -44,8 +47,16 @@ public class TRSMetaDataUtils {
             } else if (tag.getType() == Integer.class) {
                 writeLength(fos, tag.getLength());
                 writeInt(fos, metaData.getInt(tag), tag.getLength());
+            } else if (tag.getType() == TraceSetParameterMap.class) {
+                byte[] serialized = metaData.getTraceSetParameters().serialize();
+                writeLength(fos, serialized.length);
+                fos.write(serialized);
+            } else if (tag.getType() == TraceParameterDefinitionMap.class) {
+                byte[] serialized = metaData.getTraceParameterDefinitions().serialize();
+                writeLength(fos, serialized.length);
+                fos.write(serialized);
             } else {
-                throw new TRSFormatException(UNSUPPORTED_TAG_TYPE, tag.getName(), tag.getType());
+                throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, tag.getName(), tag.getType()));
             }
         }
         fos.write(TRSTag.TRACE_BLOCK.getValue());
@@ -76,7 +87,7 @@ public class TRSMetaDataUtils {
      * @throws TRSFormatException If either the file is corrupt or the reader is not positioned at the start of the file
      */
     public static TRSMetaData readTRSMetaData(ByteBuffer buffer) throws TRSFormatException {
-        TRSMetaData trs = new TRSMetaData();
+        TRSMetaData trs = TRSMetaData.create();
         byte tag;
 
         //We keep on reading meta data until we hit tag TB=0x5f
@@ -122,8 +133,12 @@ public class TRSMetaDataUtils {
             trsMD.put(trsTag, readBoolean(buffer));
         } else if (trsTag.getType() == Integer.class) {
             trsMD.put(trsTag, readInt(buffer, length));
+        } else if (trsTag.getType() == TraceSetParameterMap.class) {
+            trsMD.put(trsTag, readTraceSetParameters(buffer, length));
+        } else if (trsTag.getType() == TraceParameterDefinitionMap.class) {
+            trsMD.put(trsTag, readTraceParameterDefinitions(buffer, length));
         } else {
-            throw new TRSFormatException(UNSUPPORTED_TAG_TYPE, trsTag.getName(), trsTag.getType());
+            throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, trsTag.getName(), trsTag.getType()));
         }
     }
 
@@ -149,6 +164,28 @@ public class TRSMetaDataUtils {
         byte[] ba = new byte[length];
         buffer.get(ba);
 
-        return new String(ba);
+        return new String(ba, StandardCharsets.UTF_8);
+    }
+
+    private static TraceSetParameterMap readTraceSetParameters(ByteBuffer buffer, int length) throws TRSFormatException {
+        byte[] ba = new byte[length];
+        buffer.get(ba);
+
+        try {
+            return TraceSetParameterMap.deserialize(ba);
+        } catch (IOException e) {
+            throw new TRSFormatException(e);
+        }
+    }
+
+    private static TraceParameterDefinitionMap readTraceParameterDefinitions(ByteBuffer buffer, int length) throws TRSFormatException {
+        byte[] ba = new byte[length];
+        buffer.get(ba);
+
+        try {
+            return TraceParameterDefinitionMap.deserialize(ba);
+        } catch (IOException e) {
+            throw new TRSFormatException(e);
+        }
     }
 }
