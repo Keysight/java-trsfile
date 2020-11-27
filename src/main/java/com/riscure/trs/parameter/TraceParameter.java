@@ -1,0 +1,71 @@
+package com.riscure.trs.parameter;
+
+import com.riscure.trs.enums.ParameterType;
+import com.riscure.trs.parameter.primitive.*;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+/**
+ * This interface represents a parameter that is used in the trace data or the trace set header
+ */
+public interface TraceParameter {
+    String SAMPLES = "SAMPLES";
+    String TITLE = "TITLE";
+    String INPUT = "INPUT";
+    String OUTPUT = "OUTPUT";
+    String KEY = "KEY";
+
+    /**
+     * The number of values of this type in this parameter
+     * @return the number of values of this type in this parameter
+     */
+    int length();
+
+    /**
+     * @return The type of the parameter.
+     */
+    ParameterType getType();
+
+    /**
+     * @return The value of the parameter.
+     */
+    Object getValue();
+
+    /**
+     * Write this TraceParameter to the specified output stream
+     * @param dos the OutputStream to write to
+     * @throws IOException if any problems arise from writing to the stream
+     */
+    void serialize(DataOutputStream dos) throws IOException;
+
+    /**
+     * Read a new TraceParameter from the specified input stream
+     * @param type the type of the parameter to read
+     * @param length the number of values to read
+     * @param dis the input stream to read from
+     * @return a new TraceParameter of the specified type and length
+     * @throws IOException if any problems arise from reading from the stream
+     */
+    static TraceParameter deserialize(ParameterType type, short length, DataInputStream dis) throws IOException {
+        switch (type) {
+            case BYTE:
+                return ByteArrayParameter.deserialize(dis, length);
+            case SHORT:
+                return ShortArrayParameter.deserialize(dis, length);
+            case INT:
+                return IntArrayParameter.deserialize(dis, length);
+            case FLOAT:
+                return FloatArrayParameter.deserialize(dis, length);
+            case LONG:
+                return LongArrayParameter.deserialize(dis, length);
+            case DOUBLE:
+                return DoubleArrayParameter.deserialize(dis, length);
+            case STRING:
+                return StringParameter.deserialize(dis, length);
+            default:
+                throw new IllegalArgumentException("Unknown parameter type: " + type.name());
+        }
+    }
+}

@@ -1,6 +1,8 @@
 package com.riscure.trs.enums;
 
 import com.riscure.trs.TRSFormatException;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
 public enum TRSTag {
     NUMBER_OF_TRACES                 (0x41, "NT", true,     Integer.class,      4,      0,                 "Number of traces"),
@@ -17,6 +19,7 @@ public enum TRSTag {
     SCALE_Y                          (0x4C, "YS", false,    Float.class,        4,      1f,                "Scale value for Y-axis"),
     TRACE_OFFSET                     (0x4D, "TO", false,    Integer.class,      4,      0,                 "Trace offset for displaying trace numbers"),
     LOGARITHMIC_SCALE                (0x4E, "LS", false,    Boolean.class,      1,      false,             "Logarithmic scale"),
+    TRS_VERSION                      (0x4F, "VS", false,    Integer.class,      1,      0,                 "The version of the traceset format"),
     ACQUISITION_RANGE_OF_SCOPE       (0x55, "RG", false,    Float.class,        4,      0f,                "Range of the scope used to perform acquisition"),
     ACQUISITION_COUPLING_OF_SCOPE    (0x56, "CL", false,    Integer.class,      4,      0,                 "Coupling of the scope used to perform acquisition"),
     ACQUISITION_OFFSET_OF_SCOPE      (0x57, "OS", false,    Float.class,        4,      0f,                "Offset of the scope used to perform acquisition"),
@@ -47,7 +50,9 @@ public enum TRSTag {
     NUMBER_OF_USED_OSCILLOSCOPES     (0x72, "NO", false,    Integer.class,      4,      0,                 "Number of oscilloscopes used for measurement"),
     XY_SCAN_WIDTH                    (0x73, "WI", false,    Integer.class,      4,      0,                 "Number of steps in the \"x\" direction during XY scan"),
     XY_SCAN_HEIGHT                   (0x74, "HE", false,    Integer.class,      4,      0,                 "Number of steps in the \"y\" direction during XY scan"),
-    XY_MEASUREMENTS_PER_SPOT         (0x75, "ME", false,    Integer.class,      4,      0,                 "Number of consecutive measurements done per spot during XY scan");
+    XY_MEASUREMENTS_PER_SPOT         (0x75, "ME", false,    Integer.class,      4,      0,                 "Number of consecutive measurements done per spot during XY scan"),
+    TRACE_SET_PARAMETERS             (0x81, "GP", false,    TraceSetParameterMap.class, 0, 0,                 "The set of custom global trace set parameters"),
+    TRACE_PARAMETER_DEFINITIONS      (0x82, "LP", false,    TraceParameterDefinitionMap.class, 0,    0,                 "The set of custom local trace parameters");
 
     private static final String UNKNOWN_TAG = "Unknown tag: 0x%X";
 
@@ -101,7 +106,7 @@ public enum TRSTag {
         for (TRSTag tag : TRSTag.values()) {
             if (tag.getValue() == value) return tag;
         }
-        throw new TRSFormatException(UNKNOWN_TAG, value);
+        throw new TRSFormatException(String.format(UNKNOWN_TAG, value));
     }
 
     @Override
