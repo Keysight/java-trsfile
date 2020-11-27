@@ -25,6 +25,76 @@ When not supplied at creation time, the following parameters are defined based o
         Since this is dynamically decided based on the values of the first trace, 
         it can be beneficial to force floats by calling Trace.forceFloatCoding() for the first trace. 
 
+### Using the TRS V2 additions
+As of release 2.0, two additional provisions were added to the .trs format: Trace Set Parameters and Trace Parameters. Note that TRS V2 is backwards compatible with TRS V1. However, as can be expected, the additional information will not be available when using a pre-V2 reader.
+#### Trace Set Parameters
+Trace Set Parameters are user-defined key value pairs that can be used to save global information about the trace set. The following types of data can be used (also found in com.riscure.trs.parameter.ParameterTypes):
+     
+     BYTE: 1 byte integer
+     SHORT: 2 byte integer
+     INT: 4 byte integer
+     FLOAT: 4 byte floating point
+     LONG: 8 byte integer
+     DOUBLE: 8 byte floating point
+     STRING: UTF-8 encoded string value
+Each type also supports array creation. Please note that there is no provision for arrays of length 1. An array of length 1 will always be saved and loaded as a single value.
+##### Using Trace Set Parameters
+Global parameters can be added by creating a `TraceSetParameters` object when creating a trace set. The following java code shows an example:
+```java
+TRSMetaData metaData = new TRSMetaData();
+metaData.put(TRSTag.TRS_VERSION, 2);
+TraceSetParameters parameters = new TraceSetParameters();
+parameters.put("BYTE", (byte)1);
+parameters.put("SHORT", (short)2);
+parameters.put("INT", 3);
+parameters.put("FLOAT", (float)4);
+parameters.put("LONG", (long)5);
+parameters.put("DOUBLE", (double)6);
+parameters.put("STRING", String.format("%3d", 7));
+parameters.put("BYTEARRAY", new byte[]{(byte) 8, (byte) 9, (byte) 0});
+parameters.put("SHORTARRAY", new short[]{(short) 1, (short) 2, (short) 3});
+parameters.put("INTARRAY", new int[]{4, 5, 6});
+parameters.put("FLOATARRAY", new float[]{(float) 7, (float) 8, (float) 9});
+parameters.put("LONGARRAY", new long[]{0, 1, 2});
+parameters.put("DOUBLEARRAY", new double[]{3, 4, 5});
+metaData.put(TRSTag.TRACE_SET_PARAMETERS, parameters);
+TraceSet ts = TraceSet.create("PATH_TO_NEW_TRS_FILE", metaData);
+//Add traces here
+ts.close();
+```
+
+#### Trace Parameters
+TraceParameters behave very similar to Trace Set Parameters from a user perspective. They are values that can be added to _every_ trace, describing specific values that can vary between traces. The data types that can be used are the same as for Trace Set Parameters. However, there are several details that are different:
+
+    1. The length of the added information *must* be the same for every trace. This means that the first trace added to the trace set dictates the length of both arrays _and_ strings. If a longer string is added later, it will be truncated.
+    2. The length of every parameter is saved in the header at creation time, in a structure called `TraceParameterDefinitions`. This structure is used when reading out the traces to determine the structure of the included data. This information is _not_ added to the individual traces themselves.
+    3. Going forward, there will be pre-defined tags used to mark important information. At time of writing, the following tags are known:
+        INPUT: the byte array used as input to a cryptographic algorithm
+        OUTPUT: the byte array returned by a cryptographic algorithm
+        KEY: the byte array used as key for a cryptographic operation
+        SAMPLES: An alternative for saving the samples of a trace. This may in the future replace the predefined trace structure of title-data-samples.
+        TITLE: An alternative for saving the title of a trace. This may in the future replace the predefined trace structure of title-data-samples.
+##### Using Trace Parameters
+Local parameters can be added by creating a `TraceParameters` object when creating a trace. The following java code shows an example:
+```java
+TraceParameters parameters = new TraceParameters();
+parameters.put("BYTE", (byte)1);
+parameters.put("SHORT", (short)2);
+parameters.put("INT", 3);
+parameters.put("FLOAT", 4.0f);
+parameters.put("LONG", 5L);
+parameters.put("DOUBLE", 6.0);
+parameters.put("STRING", "A string");
+parameters.put("BYTEARRAY", new byte[]{(byte) 1, (byte) 2, (byte) 3});
+parameters.put("SHORTARRAY", new short[]{(short) 4, (short) 5, (short) 6});
+parameters.put("INTARRAY", new int[]{7, 8, 9});
+parameters.put("FLOATARRAY", new float[]{0.0f, 1.0f, 2.0f});
+parameters.put("LONGARRAY", new long[]{3L, 4L, 5L});
+parameters.put("DOUBLEARRAY", new double[]{6.0, 7.0, 8.0});
+Trace.create("trace title", new float[0], parameters);
+```
+Note that the previously mentioned `TraceParameterDefinitions` are created automatically when adding the first trace.
+
 ### Reading `.trs` files
 ```java
 import com.riscure.trs.Trace;

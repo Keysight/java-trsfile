@@ -1,6 +1,8 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.TRSTag;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -101,6 +103,30 @@ public class TRSMetaData {
      */
     public float getFloat(TRSTag tag) {
         return (Float) metaData.get(tag);
+    }
+
+    /**
+     * Get the TraceSetParameters of this trace set, or an empty set if they are undefined
+     * @return the TraceSetParameters of this trace set
+     */
+    public TraceSetParameterMap getTraceSetParameters() {
+        Object o = metaData.get(TRSTag.TRACE_SET_PARAMETERS);
+        if (o instanceof TraceSetParameterMap) {
+            return (TraceSetParameterMap) o;
+        }
+        return new TraceSetParameterMap();
+    }
+
+    /**
+     * Get the TraceParameterDefinitions of this trace set, or an empty set if they are undefined
+     * @return the TraceParameterDefinitions of this trace set
+     */
+    public TraceParameterDefinitionMap getTraceParameterDefinitions() {
+        Object o = metaData.get(TRSTag.TRACE_PARAMETER_DEFINITIONS);
+        if (o instanceof TraceParameterDefinitionMap) {
+            return (TraceParameterDefinitionMap) o;
+        }
+        return new TraceParameterDefinitionMap();
     }
 
     /**
