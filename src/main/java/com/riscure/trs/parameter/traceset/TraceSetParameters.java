@@ -54,7 +54,7 @@ public class TraceSetParameters extends LinkedHashMap<String, TraceSetParameter>
     }
 
     public void put(String key, byte value) {
-        put(key, new TraceSetParameter(new ByteParameter(value)));
+        put(key, new byte[]{value});
     }
 
     public void put(String key, byte[] value) {
@@ -62,7 +62,7 @@ public class TraceSetParameters extends LinkedHashMap<String, TraceSetParameter>
     }
 
     public void put(String key, short value) {
-        put(key, new TraceSetParameter(new ShortParameter(value)));
+        put(key, new short[]{value});
     }
 
     public void put(String key, short[] value) {
@@ -70,7 +70,7 @@ public class TraceSetParameters extends LinkedHashMap<String, TraceSetParameter>
     }
 
     public void put(String key, int value) {
-        put(key, new TraceSetParameter(new IntParameter(value)));
+        put(key, new int[]{value});
     }
 
     public void put(String key, int[] value) {
@@ -78,7 +78,7 @@ public class TraceSetParameters extends LinkedHashMap<String, TraceSetParameter>
     }
 
     public void put(String key, float value) {
-        put(key, new TraceSetParameter(new FloatParameter(value)));
+        put(key, new float[]{value});
     }
 
     public void put(String key, float[] value) {
@@ -86,7 +86,7 @@ public class TraceSetParameters extends LinkedHashMap<String, TraceSetParameter>
     }
 
     public void put(String key, long value) {
-        put(key, new TraceSetParameter(new LongParameter(value)));
+        put(key, new long[]{value});
     }
 
     public void put(String key, long[] value) {
@@ -94,7 +94,7 @@ public class TraceSetParameters extends LinkedHashMap<String, TraceSetParameter>
     }
 
     public void put(String key, double value) {
-        put(key, new TraceSetParameter(new DoubleParameter(value)));
+        put(key, new double[]{value});
     }
 
     public void put(String key, double[] value) {

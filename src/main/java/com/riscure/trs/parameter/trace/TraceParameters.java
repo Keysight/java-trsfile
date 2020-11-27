@@ -14,7 +14,7 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
         for (TraceParameter parameter: values()) {
-            ParameterUtils.serialize(parameter, dos);
+            parameter.serialize(dos);
         }
         dos.flush();
         return baos.toByteArray();
@@ -25,7 +25,7 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             DataInputStream dis = new DataInputStream(bais);
             for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> entry : definitions.entrySet()) {
-                TraceParameter traceParameter = ParameterUtils.deserialize(entry.getValue().getType(), entry.getValue().getLength(), dis);
+                TraceParameter traceParameter = TraceParameter.deserialize(entry.getValue().getType(), entry.getValue().getLength(), dis);
                 result.put(entry.getKey(), traceParameter);
             }
         }
@@ -33,7 +33,7 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
     }
 
     public void put(String key, byte value) {
-        put(key, new ByteParameter(value));
+        put(key, new byte[]{value});
     }
 
     public void put(String key, byte[] value) {
@@ -41,7 +41,7 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
     }
 
     public void put(String key, short value) {
-        put(key, new ShortParameter(value));
+        put(key, new short[]{value});
     }
 
     public void put(String key, short[] value) {
@@ -49,7 +49,7 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
     }
 
     public void put(String key, int value) {
-        put(key, new IntParameter(value));
+        put(key, new int[]{value});
     }
 
     public void put(String key, int[] value) {
@@ -57,7 +57,7 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
     }
 
     public void put(String key, float value) {
-        put(key, new FloatParameter(value));
+        put(key, new float[]{value});
     }
 
     public void put(String key, float[] value) {
@@ -65,7 +65,7 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
     }
 
     public void put(String key, long value) {
-        put(key, new LongParameter(value));
+        put(key, new long[]{value});
     }
 
     public void put(String key, long[] value) {
@@ -73,7 +73,7 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
     }
 
     public void put(String key, double value) {
-        put(key, new DoubleParameter(value));
+        put(key, new double[]{value});
     }
 
     public void put(String key, double[] value) {

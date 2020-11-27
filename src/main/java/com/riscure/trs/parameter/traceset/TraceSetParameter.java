@@ -2,7 +2,6 @@ package com.riscure.trs.parameter.traceset;
 
 import com.riscure.trs.parameter.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
-import com.riscure.trs.parameter.primitive.ParameterUtils;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,13 +18,13 @@ public class TraceSetParameter {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(value.getType().getValue());
         dos.writeShort(value.length());
-        ParameterUtils.serialize(value, dos);
+        value.serialize(dos);
     }
 
     public static TraceSetParameter deserialize(DataInputStream dis) throws IOException {
         ParameterType type = ParameterType.fromValue(dis.readByte());
         short length = dis.readShort();
-        return new TraceSetParameter(ParameterUtils.deserialize(type, length, dis));
+        return new TraceSetParameter(TraceParameter.deserialize(type, length, dis));
     }
 
     public TraceParameter getValue() {

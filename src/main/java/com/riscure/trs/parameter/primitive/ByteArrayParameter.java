@@ -1,12 +1,12 @@
 package com.riscure.trs.parameter.primitive;
 
 import com.riscure.trs.parameter.ParameterType;
+import com.riscure.trs.HexUtils;
 import com.riscure.trs.parameter.TraceParameter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class ByteArrayParameter implements TraceParameter {
@@ -47,7 +47,7 @@ public class ByteArrayParameter implements TraceParameter {
 
     @Override
     public String toString() {
-        return ParameterUtils.toHexString(value);
+        return HexUtils.toHexString(value);
     }
 
     @Override
