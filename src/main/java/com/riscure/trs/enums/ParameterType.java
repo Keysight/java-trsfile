@@ -1,4 +1,4 @@
-package com.riscure.trs.parameter;
+package com.riscure.trs.enums;
 
 public enum ParameterType {
     BYTE (0x01, Byte.BYTES),

@@ -1,13 +1,12 @@
 package com.riscure.trs.parameter.primitive;
 
-import com.riscure.trs.parameter.ParameterType;
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class StringParameter implements TraceParameter {

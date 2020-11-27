@@ -1,7 +1,7 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.Encoding;
-import com.riscure.trs.parameter.ParameterType;
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.StringParameter;
 import com.riscure.trs.parameter.trace.TraceParameterMap;

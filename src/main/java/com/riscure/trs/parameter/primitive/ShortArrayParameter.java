@@ -1,6 +1,6 @@
 package com.riscure.trs.parameter.primitive;
 
-import com.riscure.trs.parameter.ParameterType;
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 
 import java.io.DataInputStream;
