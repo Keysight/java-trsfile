@@ -1,7 +1,7 @@
 package com.riscure.trs.parameter.trace.definition;
 
 import com.riscure.trs.parameter.TraceParameter;
-import com.riscure.trs.parameter.trace.TraceParameters;
+import com.riscure.trs.parameter.trace.TraceParameterMap;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +13,7 @@ import java.util.Map;
  *
  * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
  */
-public class TraceParameterDefinitions extends LinkedHashMap<String, TraceParameterDefinition<TraceParameter>> {
+public class TraceParameterDefinitionMap extends LinkedHashMap<String, TraceParameterDefinition<TraceParameter>> {
     public int totalSize() {
         return values().stream().mapToInt(definition -> definition.getLength() * definition.getType().getByteSize()).sum();
     }
@@ -36,8 +36,8 @@ public class TraceParameterDefinitions extends LinkedHashMap<String, TraceParame
         return baos.toByteArray();
     }
 
-    public static TraceParameterDefinitions deserialize(byte[] bytes) throws IOException {
-        TraceParameterDefinitions result = new TraceParameterDefinitions();
+    public static TraceParameterDefinitionMap deserialize(byte[] bytes) throws IOException {
+        TraceParameterDefinitionMap result = new TraceParameterDefinitionMap();
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             DataInputStream dis = new DataInputStream(bais);
             //Read NE
@@ -61,8 +61,8 @@ public class TraceParameterDefinitions extends LinkedHashMap<String, TraceParame
      * Create a set of definitions based on the parameters present in a trace.
      * @param parameters the parameters of the trace
      */
-    public static TraceParameterDefinitions createFrom(TraceParameters parameters) {
-        TraceParameterDefinitions definitions = new TraceParameterDefinitions();
+    public static TraceParameterDefinitionMap createFrom(TraceParameterMap parameters) {
+        TraceParameterDefinitionMap definitions = new TraceParameterDefinitionMap();
         if (!parameters.isEmpty()) {
             short offset = 0;
             for (Map.Entry<String, TraceParameter> entry : parameters.entrySet()) {

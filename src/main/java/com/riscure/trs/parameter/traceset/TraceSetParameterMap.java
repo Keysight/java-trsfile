@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
  */
-public class TraceSetParameters extends LinkedHashMap<String, TraceSetParameter> {
+public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParameter> {
 
     public byte[] serialize() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -32,8 +32,8 @@ public class TraceSetParameters extends LinkedHashMap<String, TraceSetParameter>
         return baos.toByteArray();
     }
 
-    public static TraceSetParameters deserialize(byte[] bytes) throws IOException {
-        TraceSetParameters result = new TraceSetParameters();
+    public static TraceSetParameterMap deserialize(byte[] bytes) throws IOException {
+        TraceSetParameterMap result = new TraceSetParameterMap();
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             DataInputStream dis = new DataInputStream(bais);
             //Read NE

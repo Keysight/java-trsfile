@@ -3,13 +3,13 @@ package com.riscure.trs.parameter.trace;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.*;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
-import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 
 import java.io.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
+public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     public byte[] toByteArray() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
@@ -20,8 +20,8 @@ public class TraceParameters extends LinkedHashMap<String, TraceParameter> {
         return baos.toByteArray();
     }
 
-    public static TraceParameters deserialize(byte[] bytes, TraceParameterDefinitions definitions) throws IOException {
-        TraceParameters result = new TraceParameters();
+    public static TraceParameterMap deserialize(byte[] bytes, TraceParameterDefinitionMap definitions) throws IOException {
+        TraceParameterMap result = new TraceParameterMap();
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             DataInputStream dis = new DataInputStream(bais);
             for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> entry : definitions.entrySet()) {

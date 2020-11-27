@@ -4,9 +4,9 @@ import com.riscure.trs.enums.Encoding;
 import com.riscure.trs.parameter.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.StringParameter;
-import com.riscure.trs.parameter.trace.TraceParameters;
+import com.riscure.trs.parameter.trace.TraceParameterMap;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
-import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -150,15 +150,15 @@ public class TraceSet implements AutoCloseable {
         }
 
         if (metaData.getInt(TRS_VERSION) > 1) {
-            TraceParameterDefinitions traceParameterDefinitions = metaData.getTraceParameterDefinitions();
+            TraceParameterDefinitionMap traceParameterDefinitionMap = metaData.getTraceParameterDefinitions();
             try {
-                int size = traceParameterDefinitions.totalSize();
+                int size = traceParameterDefinitionMap.totalSize();
                 byte[] data = new byte[size];
                 buffer.get(data);
-                TraceParameters traceParameters = TraceParameters.deserialize(data, traceParameterDefinitions);
+                TraceParameterMap traceParameterMap = TraceParameterMap.deserialize(data, traceParameterDefinitionMap);
 
                 float[] samples = readSamples();
-                return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), traceParameters);
+                return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), traceParameterMap);
             } catch (TRSFormatException ex) {
                 throw new IOException(ex);
             }
@@ -192,7 +192,7 @@ public class TraceSet implements AutoCloseable {
             metaData.put(TITLE_SPACE, titleLength, false);
             metaData.put(SCALE_X, 1f/trace.getSampleFrequency(), false);
             metaData.put(SAMPLE_CODING, trace.getPreferredCoding(), false);
-            metaData.put(TRACE_PARAMETER_DEFINITIONS, TraceParameterDefinitions.createFrom(trace.getParameters()));
+            metaData.put(TRACE_PARAMETER_DEFINITIONS, TraceParameterDefinitionMap.createFrom(trace.getParameters()));
             TRSMetaDataUtils.writeTRSMetaData(writeStream, metaData);
             firstTrace = false;
         }
@@ -216,9 +216,9 @@ public class TraceSet implements AutoCloseable {
         if (title != null && titleSpace < title.getBytes(StandardCharsets.UTF_8).length) {
             trace.setTitle(fitUtf8StringToByteLength(title, titleSpace));
         }
-        TraceParameterDefinitions traceParameterDefinitions = metaData.getTraceParameterDefinitions();
+        TraceParameterDefinitionMap traceParameterDefinitionMap = metaData.getTraceParameterDefinitions();
         boolean needsUpdate = false;
-        for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> definition : traceParameterDefinitions.entrySet()) {
+        for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> definition : traceParameterDefinitionMap.entrySet()) {
             TraceParameterDefinition<TraceParameter> value = definition.getValue();
             String key = definition.getKey();
             if (value.getType() == ParameterType.STRING) {

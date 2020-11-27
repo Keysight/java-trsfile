@@ -1,7 +1,7 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.Encoding;
-import com.riscure.trs.parameter.trace.TraceParameters;
+import com.riscure.trs.parameter.trace.TraceParameterMap;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -24,7 +24,7 @@ public class Trace {
     /**
      * Factory method. This will copy the provided arrays for stability.
      * @deprecated As of TraceSet V2, it is no longer recommended to create traces
-     * with raw data. Please use {@link #create(String, float[], TraceParameters)} instead.
+     * with raw data. Please use {@link #create(String, float[], TraceParameterMap)} instead.
      * @param title the trace title
      * @param data the communication data array
      * @param sample the sample array
@@ -43,14 +43,14 @@ public class Trace {
      * @throws IOException if there is a problem creating or writing to the trace set file
      * @return a new trace object holding the provided information
      */
-    public static Trace create(String title, float[] sample, TraceParameters parameters) throws IOException {
+    public static Trace create(String title, float[] sample, TraceParameterMap parameters) throws IOException {
         return new Trace(title, sample.clone(), parameters);
     }
 
     /**
      * Factory method. This will copy the provided arrays for stability.
      * @deprecated As of TraceSet V2, it is no longer recommended to create traces
-     * with raw data. Please use {@link #create(String, float[], TraceParameters)} instead.
+     * with raw data. Please use {@link #create(String, float[], TraceParameterMap)} instead.
      * @param title the trace title
      * @param data the communication data array
      * @param sample the sample array
@@ -71,7 +71,7 @@ public class Trace {
      * @throws IOException if there is a problem creating or writing to the trace set file
      * @return a new trace object holding the provided information
      */
-    public static Trace create(String title, float[] sample, float sampleFrequency, TraceParameters parameters) throws IOException {
+    public static Trace create(String title, float[] sample, float sampleFrequency, TraceParameterMap parameters) throws IOException {
         return new Trace(title, sample.clone(), sampleFrequency, parameters);
     }
 
@@ -89,7 +89,7 @@ public class Trace {
      * Creates a new instance of Trace containing title, (crypto) data and sample array
      * Do not modify the sample array, it may be used in the core!
      * @deprecated As of TraceSet V2, it is no longer recommended to create traces
-     * with raw data. Please use {@link #Trace(String, float[], TraceParameters)} instead.
+     * with raw data. Please use {@link #Trace(String, float[], TraceParameterMap)} instead.
      * 
      * @param title
      *            Local title for this trace
@@ -115,7 +115,7 @@ public class Trace {
      *                   these values are also stored as a raw byte array
      * @throws IOException if there is a problem creating or writing to the trace set file
      */
-    public Trace(String title, float[] sample, TraceParameters parameters) throws IOException {
+    public Trace(String title, float[] sample, TraceParameterMap parameters) throws IOException {
         this.title = title;
         this.sample = FloatBuffer.wrap(sample);
         this.data = parameters.toByteArray();
@@ -126,7 +126,7 @@ public class Trace {
      * Creates a new instance of Trace containing title, (crypto) data and sample array
      * Do not modify the sample array, it may be used in the core!
      * @deprecated As of TraceSet V2, it is no longer recommended to create traces
-     * with raw data. Please use {@link #Trace(String, float[], float, TraceParameters)} instead.
+     * with raw data. Please use {@link #Trace(String, float[], float, TraceParameterMap)} instead.
      *
      * @param title
      *            Local title for this trace
@@ -154,7 +154,7 @@ public class Trace {
      *                   these values are also stored as a raw byte array
      * @throws IOException if there is a problem creating or writing to the trace set file
      */
-    public Trace(String title, float[] sample, float sampleFrequency, TraceParameters parameters) throws IOException {
+    public Trace(String title, float[] sample, float sampleFrequency, TraceParameterMap parameters) throws IOException {
         this(title, sample, parameters);
         this.sampleFrequency = sampleFrequency;
     }
@@ -271,7 +271,7 @@ public class Trace {
      *
      * @return the parameters of this trace
      */
-    public TraceParameters getParameters() {
+    public TraceParameterMap getParameters() {
         return parameters;
     }
 
@@ -312,7 +312,7 @@ public class Trace {
     }
 
     /** A map of all custom named trace parameters */
-    private TraceParameters parameters = new TraceParameters();
+    private TraceParameterMap parameters = new TraceParameterMap();
     /** list of samples */
     private FloatBuffer sample;
     /** trace title */

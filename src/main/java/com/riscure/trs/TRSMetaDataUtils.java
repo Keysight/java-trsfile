@@ -1,8 +1,8 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.TRSTag;
-import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitions;
-import com.riscure.trs.parameter.traceset.TraceSetParameters;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,11 +47,11 @@ public class TRSMetaDataUtils {
             } else if (tag.getType() == Integer.class) {
                 writeLength(fos, tag.getLength());
                 writeInt(fos, metaData.getInt(tag), tag.getLength());
-            } else if (tag.getType() == TraceSetParameters.class) {
+            } else if (tag.getType() == TraceSetParameterMap.class) {
                 byte[] serialized = metaData.getTraceSetParameters().serialize();
                 writeLength(fos, serialized.length);
                 fos.write(serialized);
-            } else if (tag.getType() == TraceParameterDefinitions.class) {
+            } else if (tag.getType() == TraceParameterDefinitionMap.class) {
                 byte[] serialized = metaData.getTraceParameterDefinitions().serialize();
                 writeLength(fos, serialized.length);
                 fos.write(serialized);
@@ -133,9 +133,9 @@ public class TRSMetaDataUtils {
             trsMD.put(trsTag, readBoolean(buffer));
         } else if (trsTag.getType() == Integer.class) {
             trsMD.put(trsTag, readInt(buffer, length));
-        } else if (trsTag.getType() == TraceSetParameters.class) {
+        } else if (trsTag.getType() == TraceSetParameterMap.class) {
             trsMD.put(trsTag, readTraceSetParameters(buffer, length));
-        } else if (trsTag.getType() == TraceParameterDefinitions.class) {
+        } else if (trsTag.getType() == TraceParameterDefinitionMap.class) {
             trsMD.put(trsTag, readTraceParameterDefinitions(buffer, length));
         } else {
             throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, trsTag.getName(), trsTag.getType()));
@@ -167,23 +167,23 @@ public class TRSMetaDataUtils {
         return new String(ba, StandardCharsets.UTF_8);
     }
 
-    private static TraceSetParameters readTraceSetParameters(ByteBuffer buffer, int length) throws TRSFormatException {
+    private static TraceSetParameterMap readTraceSetParameters(ByteBuffer buffer, int length) throws TRSFormatException {
         byte[] ba = new byte[length];
         buffer.get(ba);
 
         try {
-            return TraceSetParameters.deserialize(ba);
+            return TraceSetParameterMap.deserialize(ba);
         } catch (IOException e) {
             throw new TRSFormatException(e);
         }
     }
 
-    private static TraceParameterDefinitions readTraceParameterDefinitions(ByteBuffer buffer, int length) throws TRSFormatException {
+    private static TraceParameterDefinitionMap readTraceParameterDefinitions(ByteBuffer buffer, int length) throws TRSFormatException {
         byte[] ba = new byte[length];
         buffer.get(ba);
 
         try {
-            return TraceParameterDefinitions.deserialize(ba);
+            return TraceParameterDefinitionMap.deserialize(ba);
         } catch (IOException e) {
             throw new TRSFormatException(e);
         }
