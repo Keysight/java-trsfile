@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class ByteArrayParameter implements TraceParameter {
+    private static final String INVALID_LENGTH = "Error parsing byte array: Expected (%d) bytes but found (%d)";
     private final byte[] value;
 
     public ByteArrayParameter(int length) {
@@ -26,7 +27,8 @@ public class ByteArrayParameter implements TraceParameter {
 
     public static ByteArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
         ByteArrayParameter result = new ByteArrayParameter(length);
-        dis.read(result.value);
+        int bytesRead = dis.read(result.value);
+        if (bytesRead != length) throw new IOException(String.format(INVALID_LENGTH, length, bytesRead));
         return result;
     }
 

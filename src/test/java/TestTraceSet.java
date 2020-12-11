@@ -3,6 +3,7 @@ import com.riscure.trs.TRSMetaData;
 import com.riscure.trs.Trace;
 import com.riscure.trs.TraceSet;
 import com.riscure.trs.enums.Encoding;
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
@@ -12,6 +13,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -316,5 +319,23 @@ public class TestTraceSet {
                 });
             }
         }
+    }
+
+    /**
+     * This test checks whether all deserialize methods throw an exception if the inputstream does not contain enough data
+     * Introduced to test #11: TraceParameter.deserialize does not check the actual returned length
+     */
+    @Test
+    public void testInvalidParameterLength() {
+        int errors = 0;
+        byte[] empty = new byte[1];
+        for (ParameterType type: ParameterType.values()) {
+            try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(empty))) {
+                TraceParameter.deserialize(type, (short) 4, dis);
+            } catch (IOException e) {
+                errors++;
+            }
+        }
+        assertEquals(ParameterType.values().length, errors);
     }
 }
