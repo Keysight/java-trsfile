@@ -1,5 +1,6 @@
 package com.riscure.trs.parameter.traceset;
 
+import com.riscure.trs.types.TypedKey;
 import com.riscure.trs.parameter.primitive.*;
 
 import java.io.*;
@@ -104,6 +105,14 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
 
     public void put(String key, String value) {
         put(key, new TraceSetParameter(new StringParameter(value)));
+    }
+
+    public <T> T get(TypedKey<T> typedKey) {
+        if (get(typedKey.getKey()).getValue().length() == 1) {
+            return typedKey.getCls().cast(get(typedKey.getKey()).getValue().getSimpleValue());
+        } else {
+            return typedKey.getCls().cast(get(typedKey.getKey()).getValue());
+        }
     }
 
     public byte getByte(String key) {

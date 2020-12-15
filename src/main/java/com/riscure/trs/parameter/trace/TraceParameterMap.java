@@ -4,6 +4,7 @@ import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.*;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.types.TypedKey;
 
 import java.io.*;
 import java.util.LinkedHashMap;
@@ -84,6 +85,14 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
 
     public void put(String key, String value) {
         put(key, new StringParameter(value));
+    }
+
+    public <T> T get(TypedKey<T> typedKey) {
+        if (get(typedKey.getKey()).length() == 1) {
+            return typedKey.getCls().cast(get(typedKey.getKey()).getSimpleValue());
+        } else {
+            return typedKey.getCls().cast(get(typedKey.getKey()).getValue());
+        }
     }
 
     public byte getByte(String key) {
