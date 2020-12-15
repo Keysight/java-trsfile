@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-public class StringParameter implements TraceParameter {
+public class StringParameter extends TraceParameter {
     private static final String INVALID_LENGTH = "Error parsing string: Expected (%d) bytes but found (%d)";
     private final String value;
 
@@ -44,8 +44,18 @@ public class StringParameter implements TraceParameter {
     }
 
     @Override
+    public String getSimpleValue() {
+        return getValue();
+    }
+
+    @Override
+    public String stringValue() {
+        return getValue();
+    }
+
+    @Override
     public String toString() {
-        return value;
+        return getValue();
     }
 
     @Override

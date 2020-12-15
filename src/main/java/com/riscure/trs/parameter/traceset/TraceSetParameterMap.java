@@ -13,6 +13,7 @@ import java.util.Map;
  * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
  */
 public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParameter> {
+    private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
 
     public byte[] serialize() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -103,5 +104,96 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
 
     public void put(String key, String value) {
         put(key, new TraceSetParameter(new StringParameter(value)));
+    }
+
+    public byte getByte(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().byteValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public byte[] getByteArray(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().byteArrayValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public short getShort(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().shortValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public short[] getShortArray(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().shortArrayValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public int getInt(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().intValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public int[] getIntArray(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().intArrayValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public float getFloat(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().floatValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public float[] getFloatArray(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().floatArrayValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public long getLong(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().longValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public long[] getLongArray(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().longArrayValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public double getDouble(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().doubleValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public double[] getDoubleArray(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().doubleArrayValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+    }
+
+    public String getString(String key) {
+        if (get(key) != null) {
+            return get(key).getValue().stringValue();
+        }
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
     }
 }

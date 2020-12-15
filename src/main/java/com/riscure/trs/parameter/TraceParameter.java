@@ -10,35 +10,92 @@ import java.io.IOException;
 /**
  * This interface represents a parameter that is used in the trace data or the trace set header
  */
-public interface TraceParameter {
-    String SAMPLES = "SAMPLES";
-    String TITLE = "TITLE";
-    String INPUT = "INPUT";
-    String OUTPUT = "OUTPUT";
-    String KEY = "KEY";
+public abstract class TraceParameter {
+    public static final String SAMPLES = "SAMPLES";
+    public static final String TITLE = "TITLE";
+    public static final String INPUT = "INPUT";
+    public static final String OUTPUT = "OUTPUT";
+    public static final String KEY = "KEY";
 
     /**
      * The number of values of this type in this parameter
      * @return the number of values of this type in this parameter
      */
-    int length();
+    public abstract int length();
 
     /**
      * @return The type of the parameter.
      */
-    ParameterType getType();
+    public abstract ParameterType getType();
 
     /**
      * @return The value of the parameter.
      */
-    Object getValue();
+    public abstract Object getValue();
+
+    /**
+     * @return The value of the parameter as a simple value. Will cause an exception if called on an array type.
+     */
+    public abstract Object getSimpleValue();
 
     /**
      * Write this TraceParameter to the specified output stream
      * @param dos the OutputStream to write to
      * @throws IOException if any problems arise from writing to the stream
      */
-    void serialize(DataOutputStream dos) throws IOException;
+    public abstract void serialize(DataOutputStream dos) throws IOException;
+
+    public byte byteValue() {
+        throw new IllegalArgumentException("Parameter does not represent a byte value.");
+    }
+
+    public byte[] byteArrayValue() {
+        throw new IllegalArgumentException("Parameter does not represent a byte array value.");
+    }
+
+    public short shortValue() {
+        throw new IllegalArgumentException("Parameter does not represent a short value.");
+    }
+
+    public short[] shortArrayValue() {
+        throw new IllegalArgumentException("Parameter does not represent a short array value.");
+    }
+
+    public int intValue() {
+        throw new IllegalArgumentException("Parameter does not represent an integer value.");
+    }
+
+    public int[] intArrayValue() {
+        throw new IllegalArgumentException("Parameter does not represent an integer array value.");
+    }
+
+    public float floatValue() {
+        throw new IllegalArgumentException("Parameter does not represent a float value.");
+    }
+
+    public float[] floatArrayValue() {
+        throw new IllegalArgumentException("Parameter does not represent a float array value.");
+    }
+
+    public long longValue() {
+        throw new IllegalArgumentException("Parameter does not represent a long value.");
+    }
+
+    public long[] longArrayValue() {
+        throw new IllegalArgumentException("Parameter does not represent a long array value.");
+    }
+
+    public double doubleValue() {
+        throw new IllegalArgumentException("Parameter does not represent a double value.");
+    }
+
+    public double[] doubleArrayValue() {
+        throw new IllegalArgumentException("Parameter does not represent a double array value.");
+    }
+
+    public String stringValue() {
+        throw new IllegalArgumentException("Parameter does not represent a string value.");
+    }
 
     /**
      * Read a new TraceParameter from the specified input stream
@@ -48,7 +105,7 @@ public interface TraceParameter {
      * @return a new TraceParameter of the specified type and length
      * @throws IOException if any problems arise from reading from the stream
      */
-    static TraceParameter deserialize(ParameterType type, short length, DataInputStream dis) throws IOException {
+    public static TraceParameter deserialize(ParameterType type, short length, DataInputStream dis) throws IOException {
         switch (type) {
             case BYTE:
                 return ByteArrayParameter.deserialize(dis, length);

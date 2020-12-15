@@ -9,7 +9,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class ByteArrayParameter implements TraceParameter {
+public class ByteArrayParameter extends TraceParameter {
     private static final String INVALID_LENGTH = "Error parsing byte array: Expected (%d) bytes but found (%d)";
     private final byte[] value;
 
@@ -45,6 +45,22 @@ public class ByteArrayParameter implements TraceParameter {
     @Override
     public byte[] getValue() {
         return value;
+    }
+
+    @Override
+    public Byte getSimpleValue() {
+        return byteValue();
+    }
+
+    @Override
+    public byte byteValue() {
+        if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
+        return getValue()[0];
+    }
+
+    @Override
+    public byte[] byteArrayValue() {
+        return getValue();
     }
 
     @Override
