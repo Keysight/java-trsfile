@@ -430,7 +430,7 @@ public class TestTraceSet {
                 parameters.put("SHORT", (short) k);
                 parameters.put("INT", k);
                 parameters.put("FLOAT", (float) k);
-                parameters.put("LONG", (long) k);
+                parameters.put(new LongTypeKey("LONG"), (long) k);
                 parameters.put("DOUBLE", (double) k);
                 parameters.put("STRING", String.format("%3d", k));
                 parameters.put("BYTEARRAY", new byte[]{(byte) k, (byte) k, (byte) k});

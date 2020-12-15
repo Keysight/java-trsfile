@@ -7,6 +7,7 @@ import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.types.TypedKey;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -36,55 +37,59 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     }
 
     public void put(String key, byte value) {
-        put(key, new byte[]{value});
+        put(key, TraceParameterFactory.create(Byte.class, value));
     }
 
     public void put(String key, byte[] value) {
-        put(key, new ByteArrayParameter(value));
+        put(key, TraceParameterFactory.create(byte[].class, value));
     }
 
     public void put(String key, short value) {
-        put(key, new short[]{value});
+        put(key, TraceParameterFactory.create(Short.class, value));
     }
 
     public void put(String key, short[] value) {
-        put(key, new ShortArrayParameter(value));
+        put(key, TraceParameterFactory.create(short[].class, value));
     }
 
     public void put(String key, int value) {
-        put(key, new int[]{value});
+        put(key, TraceParameterFactory.create(Integer.class, value));
     }
 
     public void put(String key, int[] value) {
-        put(key, new IntArrayParameter(value));
+        put(key, TraceParameterFactory.create(int[].class, value));
     }
 
     public void put(String key, float value) {
-        put(key, new float[]{value});
+        put(key, TraceParameterFactory.create(Float.class, value));
     }
 
     public void put(String key, float[] value) {
-        put(key, new FloatArrayParameter(value));
+        put(key, TraceParameterFactory.create(float[].class, value));
     }
 
     public void put(String key, long value) {
-        put(key, new long[]{value});
+        put(key, TraceParameterFactory.create(Long.class, value));
     }
 
     public void put(String key, long[] value) {
-        put(key, new LongArrayParameter(value));
+        put(key, TraceParameterFactory.create(long[].class, value));
     }
 
     public void put(String key, double value) {
-        put(key, new double[]{value});
+        put(key, TraceParameterFactory.create(Double.class, value));
     }
 
     public void put(String key, double[] value) {
-        put(key, new DoubleArrayParameter(value));
+        put(key, TraceParameterFactory.create(double[].class, value));
     }
 
     public void put(String key, String value) {
-        put(key, new StringParameter(value));
+        put(key, TraceParameterFactory.create(String.class, value));
+    }
+
+    public <T> void put(TypedKey<T> typedKey, T value) {
+        put(typedKey.getKey(), TraceParameterFactory.create(typedKey.getCls(), value));
     }
 
     public <T> T get(TypedKey<T> typedKey) {

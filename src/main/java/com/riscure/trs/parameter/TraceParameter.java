@@ -2,6 +2,7 @@ package com.riscure.trs.parameter;
 
 import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.primitive.*;
+import com.riscure.trs.types.ByteArrayTypeKey;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -16,6 +17,7 @@ public abstract class TraceParameter {
     public static final String INPUT = "INPUT";
     public static final String OUTPUT = "OUTPUT";
     public static final String KEY = "KEY";
+    public static final ByteArrayTypeKey KEY_TYPE = new ByteArrayTypeKey(KEY);
 
     /**
      * The number of values of this type in this parameter
