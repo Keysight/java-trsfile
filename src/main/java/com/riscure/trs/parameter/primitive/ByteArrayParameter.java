@@ -48,7 +48,7 @@ public class ByteArrayParameter extends TraceParameter {
     }
 
     @Override
-    public Byte getSimpleValue() {
+    public Byte getScalarValue() {
         if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
         return getValue()[0];
     }

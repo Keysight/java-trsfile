@@ -7,7 +7,6 @@ import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.types.*;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +44,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
         TraceParameter traceParameter = Optional.ofNullable(get(typedKey.getKey()))
                 .orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
         if (traceParameter.length() == 1) {
-            return typedKey.cast(traceParameter.getSimpleValue());
+            return typedKey.cast(traceParameter.getScalarValue());
         } else {
             return typedKey.cast(traceParameter.getValue());
         }

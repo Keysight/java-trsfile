@@ -44,7 +44,7 @@ public class StringParameter extends TraceParameter {
     }
 
     @Override
-    public String getSimpleValue() {
+    public String getScalarValue() {
         return getValue();
     }
 

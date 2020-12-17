@@ -47,7 +47,7 @@ public class LongArrayParameter extends TraceParameter {
     }
 
     @Override
-    public Long getSimpleValue() {
+    public Long getScalarValue() {
         if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
         return getValue()[0];
     }

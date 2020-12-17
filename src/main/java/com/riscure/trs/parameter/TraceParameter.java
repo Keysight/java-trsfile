@@ -17,7 +17,6 @@ public abstract class TraceParameter {
     public static final String INPUT = "INPUT";
     public static final String OUTPUT = "OUTPUT";
     public static final String KEY = "KEY";
-    public static final ByteArrayTypeKey KEY_TYPE = new ByteArrayTypeKey(KEY);
 
     /**
      * The number of values of this type in this parameter
@@ -38,7 +37,7 @@ public abstract class TraceParameter {
     /**
      * @return The value of the parameter as a simple value. Will cause an exception if called on an array type.
      */
-    public abstract Object getSimpleValue();
+    public abstract Object getScalarValue();
 
     /**
      * Write this TraceParameter to the specified output stream

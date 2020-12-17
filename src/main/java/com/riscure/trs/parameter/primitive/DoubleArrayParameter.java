@@ -49,7 +49,7 @@ public class DoubleArrayParameter extends TraceParameter {
     }
 
     @Override
-    public Double getSimpleValue() {
+    public Double getScalarValue() {
         if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
         return getValue()[0];
     }

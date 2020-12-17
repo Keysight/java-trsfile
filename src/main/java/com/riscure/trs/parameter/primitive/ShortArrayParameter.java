@@ -49,7 +49,7 @@ public class ShortArrayParameter extends TraceParameter {
     }
 
     @Override
-    public Short getSimpleValue() {
+    public Short getScalarValue() {
         if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
         return getValue()[0];
     }

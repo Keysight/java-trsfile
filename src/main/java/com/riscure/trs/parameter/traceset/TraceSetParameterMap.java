@@ -1,6 +1,5 @@
 package com.riscure.trs.parameter.traceset;
 
-import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.types.*;
 import com.riscure.trs.parameter.primitive.*;
 
@@ -117,7 +116,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
         TraceSetParameter traceSetParameter = Optional.ofNullable(get(typedKey.getKey()))
                 .orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
         if (traceSetParameter.getValue().length() == 1) {
-            return typedKey.cast(traceSetParameter.getValue().getSimpleValue());
+            return typedKey.cast(traceSetParameter.getValue().getScalarValue());
         } else {
             return typedKey.cast(traceSetParameter.getValue().getValue());
         }
