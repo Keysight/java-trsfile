@@ -49,11 +49,6 @@ public class StringParameter extends TraceParameter {
     }
 
     @Override
-    public String stringValue() {
-        return getValue();
-    }
-
-    @Override
     public String toString() {
         return getValue();
     }

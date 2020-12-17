@@ -48,18 +48,8 @@ public class IntArrayParameter extends TraceParameter {
 
     @Override
     public Integer getSimpleValue() {
-        return intValue();
-    }
-
-    @Override
-    public int intValue() {
         if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
         return getValue()[0];
-    }
-
-    @Override
-    public int[] intArrayValue() {
-        return getValue();
     }
 
     @Override

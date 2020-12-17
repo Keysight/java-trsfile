@@ -47,58 +47,6 @@ public abstract class TraceParameter {
      */
     public abstract void serialize(DataOutputStream dos) throws IOException;
 
-    public byte byteValue() {
-        throw new IllegalArgumentException("Parameter does not represent a byte value.");
-    }
-
-    public byte[] byteArrayValue() {
-        throw new IllegalArgumentException("Parameter does not represent a byte array value.");
-    }
-
-    public short shortValue() {
-        throw new IllegalArgumentException("Parameter does not represent a short value.");
-    }
-
-    public short[] shortArrayValue() {
-        throw new IllegalArgumentException("Parameter does not represent a short array value.");
-    }
-
-    public int intValue() {
-        throw new IllegalArgumentException("Parameter does not represent an integer value.");
-    }
-
-    public int[] intArrayValue() {
-        throw new IllegalArgumentException("Parameter does not represent an integer array value.");
-    }
-
-    public float floatValue() {
-        throw new IllegalArgumentException("Parameter does not represent a float value.");
-    }
-
-    public float[] floatArrayValue() {
-        throw new IllegalArgumentException("Parameter does not represent a float array value.");
-    }
-
-    public long longValue() {
-        throw new IllegalArgumentException("Parameter does not represent a long value.");
-    }
-
-    public long[] longArrayValue() {
-        throw new IllegalArgumentException("Parameter does not represent a long array value.");
-    }
-
-    public double doubleValue() {
-        throw new IllegalArgumentException("Parameter does not represent a double value.");
-    }
-
-    public double[] doubleArrayValue() {
-        throw new IllegalArgumentException("Parameter does not represent a double array value.");
-    }
-
-    public String stringValue() {
-        throw new IllegalArgumentException("Parameter does not represent a string value.");
-    }
-
     /**
      * Read a new TraceParameter from the specified input stream
      * @param type the type of the parameter to read

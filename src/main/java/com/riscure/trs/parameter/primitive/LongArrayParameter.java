@@ -48,18 +48,8 @@ public class LongArrayParameter extends TraceParameter {
 
     @Override
     public Long getSimpleValue() {
-        return longValue();
-    }
-
-    @Override
-    public long longValue() {
         if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
         return getValue()[0];
-    }
-
-    @Override
-    public long[] longArrayValue() {
-        return getValue();
     }
 
     @Override

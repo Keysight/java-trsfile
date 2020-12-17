@@ -4,12 +4,13 @@ import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.*;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
-import com.riscure.trs.types.TypedKey;
+import com.riscure.trs.types.*;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
@@ -34,6 +35,20 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
             }
         }
         return result;
+    }
+
+    public <T> void put(TypedKey<T> typedKey, T value) {
+        put(typedKey.getKey(), TraceParameterFactory.create(typedKey.getCls(), value));
+    }
+
+    public <T> T get(TypedKey<T> typedKey) {
+        TraceParameter traceParameter = Optional.ofNullable(get(typedKey.getKey()))
+                .orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
+        if (traceParameter.length() == 1) {
+            return typedKey.cast(traceParameter.getSimpleValue());
+        } else {
+            return typedKey.cast(traceParameter.getValue());
+        }
     }
 
     public void put(String key, byte value) {
@@ -88,106 +103,55 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
         put(key, TraceParameterFactory.create(String.class, value));
     }
 
-    public <T> void put(TypedKey<T> typedKey, T value) {
-        put(typedKey.getKey(), TraceParameterFactory.create(typedKey.getCls(), value));
-    }
-
-    public <T> T get(TypedKey<T> typedKey) {
-        if (get(typedKey.getKey()).length() == 1) {
-            return typedKey.getCls().cast(get(typedKey.getKey()).getSimpleValue());
-        } else {
-            return typedKey.getCls().cast(get(typedKey.getKey()).getValue());
-        }
-    }
-
     public byte getByte(String key) {
-        if (get(key) != null) {
-            return get(key).byteValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new ByteTypeKey(key));
     }
 
     public byte[] getByteArray(String key) {
-        if (get(key) != null) {
-            return get(key).byteArrayValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new ByteArrayTypeKey(key));
     }
 
     public short getShort(String key) {
-        if (get(key) != null) {
-            return get(key).shortValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new ShortTypeKey(key));
     }
 
     public short[] getShortArray(String key) {
-        if (get(key) != null) {
-            return get(key).shortArrayValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new ShortArrayTypeKey(key));
     }
 
     public int getInt(String key) {
-        if (get(key) != null) {
-            return get(key).intValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new IntegerTypeKey(key));
     }
 
     public int[] getIntArray(String key) {
-        if (get(key) != null) {
-            return get(key).intArrayValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new IntegerArrayTypeKey(key));
     }
 
     public float getFloat(String key) {
-        if (get(key) != null) {
-            return get(key).floatValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new FloatTypeKey(key));
     }
 
     public float[] getFloatArray(String key) {
-        if (get(key) != null) {
-            return get(key).floatArrayValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new FloatArrayTypeKey(key));
     }
 
     public long getLong(String key) {
-        if (get(key) != null) {
-            return get(key).longValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new LongTypeKey(key));
     }
 
     public long[] getLongArray(String key) {
-        if (get(key) != null) {
-            return get(key).longArrayValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new LongArrayTypeKey(key));
     }
 
     public double getDouble(String key) {
-        if (get(key) != null) {
-            return get(key).doubleValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new DoubleTypeKey(key));
     }
 
     public double[] getDoubleArray(String key) {
-        if (get(key) != null) {
-            return get(key).doubleArrayValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new DoubleArrayTypeKey(key));
     }
 
     public String getString(String key) {
-        if (get(key) != null) {
-            return get(key).stringValue();
-        }
-        throw new RuntimeException(String.format(KEY_NOT_FOUND, key));
+        return get(new StringTypeKey(key));
     }
 }
