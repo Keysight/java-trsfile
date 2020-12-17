@@ -14,9 +14,6 @@ import java.io.IOException;
 public abstract class TraceParameter {
     public static final String SAMPLES = "SAMPLES";
     public static final String TITLE = "TITLE";
-    public static final String INPUT = "INPUT";
-    public static final String OUTPUT = "OUTPUT";
-    public static final String KEY = "KEY";
 
     /**
      * The number of values of this type in this parameter
