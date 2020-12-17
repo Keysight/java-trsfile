@@ -60,6 +60,7 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
     /**
      * Create a set of definitions based on the parameters present in a trace.
      * @param parameters the parameters of the trace
+     * @return a set of definitions based on the parameters present in a trace
      */
     public static TraceParameterDefinitionMap createFrom(TraceParameterMap parameters) {
         TraceParameterDefinitionMap definitions = new TraceParameterDefinitionMap();
