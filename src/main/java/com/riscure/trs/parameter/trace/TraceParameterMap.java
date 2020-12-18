@@ -42,7 +42,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
 
     public <T> T get(TypedKey<T> typedKey) {
         TraceParameter traceParameter = Optional.ofNullable(get(typedKey.getKey()))
-                .orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
+                .orElseThrow(() -> new NoSuchElementException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
         if (traceParameter.length() == 1) {
             return typedKey.cast(traceParameter.getScalarValue());
         } else {
