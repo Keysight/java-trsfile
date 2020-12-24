@@ -9,6 +9,7 @@ import com.riscure.trs.types.*;
 import java.io.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
