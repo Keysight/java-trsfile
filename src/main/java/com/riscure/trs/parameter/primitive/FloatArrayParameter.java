@@ -6,8 +6,8 @@ import com.riscure.trs.parameter.TraceParameter;
 import java.io.*;
 import java.util.Arrays;
 
-public class FloatArrayParameter implements TraceParameter {
-    private float[] value;
+public class FloatArrayParameter extends TraceParameter {
+    private final float[] value;
 
     public FloatArrayParameter(int length) {
         value = new float[length];
@@ -44,6 +44,12 @@ public class FloatArrayParameter implements TraceParameter {
     @Override
     public float[] getValue() {
         return value;
+    }
+
+    @Override
+    public Float getScalarValue() {
+        if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
+        return getValue()[0];
     }
 
     @Override

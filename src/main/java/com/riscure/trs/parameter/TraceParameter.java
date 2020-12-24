@@ -2,6 +2,7 @@ package com.riscure.trs.parameter;
 
 import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.primitive.*;
+import com.riscure.trs.types.ByteArrayTypeKey;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -10,35 +11,37 @@ import java.io.IOException;
 /**
  * This interface represents a parameter that is used in the trace data or the trace set header
  */
-public interface TraceParameter {
-    String SAMPLES = "SAMPLES";
-    String TITLE = "TITLE";
-    String INPUT = "INPUT";
-    String OUTPUT = "OUTPUT";
-    String KEY = "KEY";
+public abstract class TraceParameter {
+    public static final String SAMPLES = "SAMPLES";
+    public static final String TITLE = "TITLE";
 
     /**
      * The number of values of this type in this parameter
      * @return the number of values of this type in this parameter
      */
-    int length();
+    public abstract int length();
 
     /**
      * @return The type of the parameter.
      */
-    ParameterType getType();
+    public abstract ParameterType getType();
 
     /**
      * @return The value of the parameter.
      */
-    Object getValue();
+    public abstract Object getValue();
+
+    /**
+     * @return The value of the parameter as a simple value. Will cause an exception if called on an array type.
+     */
+    public abstract Object getScalarValue();
 
     /**
      * Write this TraceParameter to the specified output stream
      * @param dos the OutputStream to write to
      * @throws IOException if any problems arise from writing to the stream
      */
-    void serialize(DataOutputStream dos) throws IOException;
+    public abstract void serialize(DataOutputStream dos) throws IOException;
 
     /**
      * Read a new TraceParameter from the specified input stream
@@ -48,7 +51,7 @@ public interface TraceParameter {
      * @return a new TraceParameter of the specified type and length
      * @throws IOException if any problems arise from reading from the stream
      */
-    static TraceParameter deserialize(ParameterType type, short length, DataInputStream dis) throws IOException {
+    public static TraceParameter deserialize(ParameterType type, short length, DataInputStream dis) throws IOException {
         switch (type) {
             case BYTE:
                 return ByteArrayParameter.deserialize(dis, length);

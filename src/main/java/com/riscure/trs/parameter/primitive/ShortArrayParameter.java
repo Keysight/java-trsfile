@@ -8,7 +8,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class ShortArrayParameter implements TraceParameter {
+public class ShortArrayParameter extends TraceParameter {
     private final short[] value;
 
     public ShortArrayParameter(int length) {
@@ -46,6 +46,12 @@ public class ShortArrayParameter implements TraceParameter {
     @Override
     public short[] getValue() {
         return value;
+    }
+
+    @Override
+    public Short getScalarValue() {
+        if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
+        return getValue()[0];
     }
 
     @Override

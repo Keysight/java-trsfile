@@ -6,7 +6,7 @@ import com.riscure.trs.parameter.TraceParameter;
 import java.io.*;
 import java.util.Arrays;
 
-public class LongArrayParameter implements TraceParameter {
+public class LongArrayParameter extends TraceParameter {
     private final long[] value;
 
     public LongArrayParameter(int length) {
@@ -44,6 +44,12 @@ public class LongArrayParameter implements TraceParameter {
     @Override
     public long[] getValue() {
         return value;
+    }
+
+    @Override
+    public Long getScalarValue() {
+        if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
+        return getValue()[0];
     }
 
     @Override
