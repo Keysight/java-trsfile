@@ -180,33 +180,32 @@ public class Trace {
      * @return the preferred data type to store samples
      **/
     public int getPreferredCoding() {
-        if (!aggregatesValid)
+        if (!aggregatesValid) {
             updateAggregates();
+        }
 
-        if (hasIllegalValues)
-            return Encoding.ILLEGAL.getValue();
-        if (isReal)
-            return Encoding.FLOAT.getValue();
-        if (max > Short.MAX_VALUE || min < Short.MIN_VALUE)
-            return Encoding.INT.getValue();
-        if (max > Byte.MAX_VALUE || min < Byte.MIN_VALUE)
-            return Encoding.SHORT.getValue();
-        return Encoding.BYTE.getValue();
+        Encoding preferredCoding;
+        if (hasIllegalValues) {
+            preferredCoding = Encoding.ILLEGAL;
+        } else if (isReal) {
+            preferredCoding = Encoding.FLOAT;
+        } else if (max > Short.MAX_VALUE || min < Short.MIN_VALUE) {
+            preferredCoding = Encoding.INT;
+        } else if (max > Byte.MAX_VALUE || min < Byte.MIN_VALUE) {
+            preferredCoding = Encoding.SHORT;
+        } else {
+            preferredCoding = Encoding.BYTE;
+        }
+
+        return preferredCoding.getValue();
     }
 
     private void updateAggregates() {
-        float[] sample = getSample();
-
-        // Update aggregates
-        for (float f : sample) {
-            if (f > max)
-                max = f;
-            if (f < min)
-                min = f;
-            if (f != (int) f)
-                isReal = true;
-            if (Float.isNaN(f) || Float.isInfinite(f) || f == Float.POSITIVE_INFINITY)
-                hasIllegalValues = true;
+        for (float f : getSample()) {
+            max = Math.max(f, max);
+            min = Math.min(f, min);
+            isReal |= f != (int) f;
+            hasIllegalValues |= Float.isNaN(f) || Float.isInfinite(f) || f == Float.POSITIVE_INFINITY;
         }
 
         aggregatesValid = true;
