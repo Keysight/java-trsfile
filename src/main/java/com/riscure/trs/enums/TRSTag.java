@@ -51,8 +51,8 @@ public enum TRSTag {
     XY_SCAN_WIDTH                    (0x73, "WI", false,    Integer.class,      4,      0,                 "Number of steps in the \"x\" direction during XY scan"),
     XY_SCAN_HEIGHT                   (0x74, "HE", false,    Integer.class,      4,      0,                 "Number of steps in the \"y\" direction during XY scan"),
     XY_MEASUREMENTS_PER_SPOT         (0x75, "ME", false,    Integer.class,      4,      0,                 "Number of consecutive measurements done per spot during XY scan"),
-    TRACE_SET_PARAMETERS             (0x81, "GP", false,    TraceSetParameterMap.class, 0, 0,                 "The set of custom global trace set parameters"),
-    TRACE_PARAMETER_DEFINITIONS      (0x82, "LP", false,    TraceParameterDefinitionMap.class, 0,    0,                 "The set of custom local trace parameters");
+    TRACE_SET_PARAMETERS             (0x76, "GP", false,    TraceSetParameterMap.class, 0, 0,                 "The set of custom global trace set parameters"),
+    TRACE_PARAMETER_DEFINITIONS      (0x77, "LP", false,    TraceParameterDefinitionMap.class, 0,    0,                 "The set of custom local trace parameters");
 
     private static final String UNKNOWN_TAG = "Unknown tag: 0x%X";
 
