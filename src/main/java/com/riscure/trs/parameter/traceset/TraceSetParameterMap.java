@@ -7,6 +7,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -114,7 +115,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
 
     public <T> T get(TypedKey<T> typedKey) {
         TraceSetParameter traceSetParameter = Optional.ofNullable(get(typedKey.getKey()))
-                .orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
+                .orElseThrow(() -> new NoSuchElementException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
         if (traceSetParameter.getValue().length() == 1) {
             return typedKey.cast(traceSetParameter.getValue().getScalarValue());
         } else {
