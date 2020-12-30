@@ -7,6 +7,32 @@
     <groupId>com.riscure</groupId>
     <artifactId>trsfile</artifactId>
     <version>2.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Inspector Trace Set `.trs` file support for Java.
+        Riscure Inspector uses the `.trs` file format to save and read traces from disk. To better assist reading and
+        writing trace set files from third parties, Riscure published this Java library.
+    </description>
+    <url>https://github.com/Riscure/java-trsfile</url>
+    <licenses>
+        <license>
+            <name>BSD 3-Clause Clear License</name>
+            <url>https://spdx.org/licenses/BSD-3-Clause-Clear.html</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Riscure Team</name>
+            <organization>Riscure</organization>
+            <organizationUrl>https://www.riscure.com</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:${project.url}.git</connection>
+        <developerConnection>${project.scm.connection}</developerConnection>
+        <url>${project.url}/tree/master</url>
+    </scm>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
