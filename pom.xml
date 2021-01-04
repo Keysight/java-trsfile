@@ -54,6 +54,23 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.simplify4u.plugins</groupId>
+                <artifactId>sign-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <!-- keyId must be the the sign-only subkey fingerprint! (master key 718AF75F82773822E8A71DD4CF33AD49CF13F02D is kept offline)-->
+                            <keyId>D9B4FE0BC89DAA12EEAE5B4F397EA166CDA246DB</keyId>
+                            <keyPass>${env.GPG_PASSPHRASE}</keyPass>
+                            <keyFile>${project.basedir}/secrets/718AF75F82773822E8A71DD4CF33AD49CF13F02D_private_subkeys.asc</keyFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -132,6 +149,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.simplify4u.plugins</groupId>
+                    <artifactId>sign-maven-plugin</artifactId>
+                    <version>0.2.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
