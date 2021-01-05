@@ -17,9 +17,10 @@ public class TRSMetaDataUtils {
 
     /**
      * Writes the provided TRS metadata to the stream.
-     * @param fos the file output stream
+     *
+     * @param fos      the file output stream
      * @param metaData the metadata to write
-     * @throws IOException if any write error occurs
+     * @throws IOException        if any write error occurs
      * @throws TRSFormatException if the metadata contains unsupported tags
      */
     public static void writeTRSMetaData(FileOutputStream fos, TRSMetaData metaData) throws IOException, TRSFormatException {
@@ -73,16 +74,18 @@ public class TRSMetaDataUtils {
         if (length > 0x7F) {
             int lenlen = 1 + (int) (Math.log(length) / Math.log(256));
             fos.write((byte) (0x80 + lenlen));
-            for (int i = 0; i < lenlen; i++)
+            for (int i = 0; i < lenlen; i++) {
                 fos.write((byte) (length >> (i * 8)));
-        } else
+            }
+        } else {
             fos.write((byte) length);
+        }
     }
 
     /**
      * Reads the meta data of a TRS file. The {@code ByteBuffer} is assumed to be positioned at the start of the file; A
      * {@code TRSFormatException} will probably be thrown otherwise, since it cannot be parsed.
-     * 
+     *
      * @param buffer The buffer which wraps the TRS file (should be positioned at the first byte of the file)
      * @return the meta data of a TRS file
      * @throws TRSFormatException If either the file is corrupt or the reader is not positioned at the start of the file
@@ -164,21 +167,18 @@ public class TRSMetaDataUtils {
     private static String readString(ByteBuffer buffer, int length) {
         byte[] ba = new byte[length];
         buffer.get(ba);
-
         return new String(ba, StandardCharsets.UTF_8);
     }
 
     private static TraceSetParameterMap readTraceSetParameters(ByteBuffer buffer, int length) {
         byte[] ba = new byte[length];
         buffer.get(ba);
-
         return TraceSetParameterMap.deserialize(ba);
     }
 
     private static TraceParameterDefinitionMap readTraceParameterDefinitions(ByteBuffer buffer, int length) {
         byte[] ba = new byte[length];
         buffer.get(ba);
-
         return TraceParameterDefinitionMap.deserialize(ba);
     }
 }
