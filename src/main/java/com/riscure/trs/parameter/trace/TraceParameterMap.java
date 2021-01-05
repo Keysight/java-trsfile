@@ -15,17 +15,20 @@ import java.util.Optional;
 public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
 
-    public byte[] toByteArray() throws IOException {
+    public byte[] toByteArray() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(baos);
-        for (TraceParameter parameter: values()) {
-            parameter.serialize(dos);
+        try (DataOutputStream dos = new DataOutputStream(baos)) {
+            for (TraceParameter parameter : values()) {
+                parameter.serialize(dos);
+            }
+            dos.flush();
+            return baos.toByteArray();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        dos.flush();
-        return baos.toByteArray();
     }
 
-    public static TraceParameterMap deserialize(byte[] bytes, TraceParameterDefinitionMap definitions) throws IOException {
+    public static TraceParameterMap deserialize(byte[] bytes, TraceParameterDefinitionMap definitions) {
         TraceParameterMap result = new TraceParameterMap();
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             DataInputStream dis = new DataInputStream(bais);
@@ -33,8 +36,10 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
                 TraceParameter traceParameter = TraceParameter.deserialize(entry.getValue().getType(), entry.getValue().getLength(), dis);
                 result.put(entry.getKey(), traceParameter);
             }
+            return result;
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        return result;
     }
 
     public <T> void put(TypedKey<T> typedKey, T value) {

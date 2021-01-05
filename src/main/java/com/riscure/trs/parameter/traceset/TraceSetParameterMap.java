@@ -18,25 +18,28 @@ import java.util.Optional;
 public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParameter> {
     private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
 
-    public byte[] serialize() throws IOException {
+    public byte[] serialize() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(baos);
-        //Write NE
-        dos.writeShort(size());
-        for (Map.Entry<String, TraceSetParameter> entry : entrySet()) {
-            byte[] nameBytes = entry.getKey().getBytes(StandardCharsets.UTF_8);
-            //Write NL
-            dos.writeShort(nameBytes.length);
-            //Write N
-            dos.write(nameBytes);
-            //Write value
-            entry.getValue().serialize(dos);
+        try (DataOutputStream dos = new DataOutputStream(baos)) {
+            //Write NE
+            dos.writeShort(size());
+            for (Map.Entry<String, TraceSetParameter> entry : entrySet()) {
+                byte[] nameBytes = entry.getKey().getBytes(StandardCharsets.UTF_8);
+                //Write NL
+                dos.writeShort(nameBytes.length);
+                //Write N
+                dos.write(nameBytes);
+                //Write value
+                entry.getValue().serialize(dos);
+            }
+            dos.flush();
+            return baos.toByteArray();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        dos.flush();
-        return baos.toByteArray();
     }
 
-    public static TraceSetParameterMap deserialize(byte[] bytes) throws IOException {
+    public static TraceSetParameterMap deserialize(byte[] bytes) {
         TraceSetParameterMap result = new TraceSetParameterMap();
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             DataInputStream dis = new DataInputStream(bais);
@@ -53,8 +56,10 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
                 //Read value
                 result.put(name, TraceSetParameter.deserialize(dis));
             }
+            return result;
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        return result;
     }
 
     public void put(String key, byte value) {
