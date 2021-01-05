@@ -18,25 +18,28 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
         return values().stream().mapToInt(definition -> definition.getLength() * definition.getType().getByteSize()).sum();
     }
 
-    public byte[] serialize() throws IOException {
+    public byte[] serialize() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(baos);
-        //Write NE
-        dos.writeShort(size());
-        for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> entry : entrySet()) {
-            byte[] nameBytes = entry.getKey().getBytes(StandardCharsets.UTF_8);
-            //Write NL
-            dos.writeShort(nameBytes.length);
-            //Write N
-            dos.write(nameBytes);
-            TraceParameterDefinition<? extends TraceParameter> value = entry.getValue();
-            value.serialize(dos);
+        try (DataOutputStream dos = new DataOutputStream(baos)) {
+            //Write NE
+            dos.writeShort(size());
+            for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> entry : entrySet()) {
+                byte[] nameBytes = entry.getKey().getBytes(StandardCharsets.UTF_8);
+                //Write NL
+                dos.writeShort(nameBytes.length);
+                //Write N
+                dos.write(nameBytes);
+                TraceParameterDefinition<? extends TraceParameter> value = entry.getValue();
+                value.serialize(dos);
+            }
+            dos.flush();
+            return baos.toByteArray();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        dos.flush();
-        return baos.toByteArray();
     }
 
-    public static TraceParameterDefinitionMap deserialize(byte[] bytes) throws IOException {
+    public static TraceParameterDefinitionMap deserialize(byte[] bytes) {
         TraceParameterDefinitionMap result = new TraceParameterDefinitionMap();
         try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
             DataInputStream dis = new DataInputStream(bais);
@@ -53,8 +56,10 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
                 //Read definition
                 result.put(name, TraceParameterDefinition.deserialize(dis));
             }
+            return result;
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        return result;
     }
 
     /**

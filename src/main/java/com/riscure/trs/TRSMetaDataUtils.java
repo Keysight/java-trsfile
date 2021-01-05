@@ -64,8 +64,9 @@ public class TRSMetaDataUtils {
     }
 
     private static void writeInt(FileOutputStream fos, int value, int length) throws IOException {
-        for (int i = 0; i < length; i++)
+        for (int i = 0; i < length; i++) {
             fos.write((byte) (value >> (i * 8)));
+        }
     }
 
     private static void writeLength(FileOutputStream fos, long length) throws IOException {
@@ -167,25 +168,17 @@ public class TRSMetaDataUtils {
         return new String(ba, StandardCharsets.UTF_8);
     }
 
-    private static TraceSetParameterMap readTraceSetParameters(ByteBuffer buffer, int length) throws TRSFormatException {
+    private static TraceSetParameterMap readTraceSetParameters(ByteBuffer buffer, int length) {
         byte[] ba = new byte[length];
         buffer.get(ba);
 
-        try {
-            return TraceSetParameterMap.deserialize(ba);
-        } catch (IOException e) {
-            throw new TRSFormatException(e);
-        }
+        return TraceSetParameterMap.deserialize(ba);
     }
 
-    private static TraceParameterDefinitionMap readTraceParameterDefinitions(ByteBuffer buffer, int length) throws TRSFormatException {
+    private static TraceParameterDefinitionMap readTraceParameterDefinitions(ByteBuffer buffer, int length) {
         byte[] ba = new byte[length];
         buffer.get(ba);
 
-        try {
-            return TraceParameterDefinitionMap.deserialize(ba);
-        } catch (IOException e) {
-            throw new TRSFormatException(e);
-        }
+        return TraceParameterDefinitionMap.deserialize(ba);
     }
 }
