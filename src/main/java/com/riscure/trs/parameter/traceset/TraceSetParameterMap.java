@@ -18,6 +18,10 @@ import java.util.Optional;
 public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParameter> {
     private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
 
+    /**
+     * @return this map converted to a byte array, serialized according to the TRS V2 standard definition
+     * @throws RuntimeException if the map failed to serialize correctly
+     */
     public byte[] serialize() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (DataOutputStream dos = new DataOutputStream(baos)) {
@@ -39,27 +43,34 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
         }
     }
 
+    /**
+     * @param bytes a valid serialized Trace set parameter map
+     * @return a new populated Trace set parameter map as represented by the provided byte array
+     * @throws RuntimeException if the provided byte array does not represent a valid parameter map
+     */
     public static TraceSetParameterMap deserialize(byte[] bytes) {
         TraceSetParameterMap result = new TraceSetParameterMap();
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
-            DataInputStream dis = new DataInputStream(bais);
-            //Read NE
-            short numberOfEntries = dis.readShort();
-            for (int k = 0; k < numberOfEntries; k++) {
-                //Read NL
-                short nameLength = dis.readShort();
-                byte[] nameBytes = new byte[nameLength];
-                int read = dis.read(nameBytes, 0, nameLength);
-                if (read != nameLength) throw new IOException("Error reading parameter name");
-                //Read N
-                String name = new String(nameBytes, StandardCharsets.UTF_8);
-                //Read value
-                result.put(name, TraceSetParameter.deserialize(dis));
+        if (bytes != null && bytes.length > 0) {
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
+                DataInputStream dis = new DataInputStream(bais);
+                //Read NE
+                short numberOfEntries = dis.readShort();
+                for (int k = 0; k < numberOfEntries; k++) {
+                    //Read NL
+                    short nameLength = dis.readShort();
+                    byte[] nameBytes = new byte[nameLength];
+                    int read = dis.read(nameBytes, 0, nameLength);
+                    if (read != nameLength) throw new IOException("Error reading parameter name");
+                    //Read N
+                    String name = new String(nameBytes, StandardCharsets.UTF_8);
+                    //Read value
+                    result.put(name, TraceSetParameter.deserialize(dis));
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
             }
-            return result;
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
         }
+        return result;
     }
 
     public void put(String key, byte value) {

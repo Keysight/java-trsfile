@@ -14,7 +14,13 @@ import java.util.Optional;
 
 public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
+    private static final String EMPTY_DATA_BUT_NONEMPTY_DEFINITIONS = "The provided byte array is null or empty, but the provided definitions are not";
+    private static final String DATA_LENGTH_DEFINITIONS_MISMATCH = "The provided byte array (%d bytes) does not match the total definitions length (%d bytes)";
 
+    /**
+     * @return a concatenation of all trace parameters in this map, individually converted to byte arrays
+     * @throws RuntimeException if the map failed to serialize correctly
+     */
     public byte[] toByteArray() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (DataOutputStream dos = new DataOutputStream(baos)) {
@@ -28,18 +34,31 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
         }
     }
 
+    /**
+     * @param bytes a raw byte array representing the values defined by the definition map
+     * @param definitions the type and length information describing the provided byte array
+     * @return a new TraceParameterMap, created from the provided byte array based on the provided definitions
+     * @throws RuntimeException if the provided byte array does not represent a valid parameter map
+     */
     public static TraceParameterMap deserialize(byte[] bytes, TraceParameterDefinitionMap definitions) {
         TraceParameterMap result = new TraceParameterMap();
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
-            DataInputStream dis = new DataInputStream(bais);
-            for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> entry : definitions.entrySet()) {
-                TraceParameter traceParameter = TraceParameter.deserialize(entry.getValue().getType(), entry.getValue().getLength(), dis);
-                result.put(entry.getKey(), traceParameter);
+        if (bytes != null && bytes.length > 0) {
+            if (bytes.length != definitions.totalSize()) {
+                throw new IllegalArgumentException(String.format(DATA_LENGTH_DEFINITIONS_MISMATCH, bytes.length, definitions.totalSize()));
             }
-            return result;
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
+                DataInputStream dis = new DataInputStream(bais);
+                for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> entry : definitions.entrySet()) {
+                    TraceParameter traceParameter = TraceParameter.deserialize(entry.getValue().getType(), entry.getValue().getLength(), dis);
+                    result.put(entry.getKey(), traceParameter);
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        } else if (!definitions.isEmpty()) {
+            throw new IllegalArgumentException(EMPTY_DATA_BUT_NONEMPTY_DEFINITIONS);
         }
+        return result;
     }
 
     public <T> void put(TypedKey<T> typedKey, T value) {
