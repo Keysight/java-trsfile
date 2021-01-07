@@ -1,5 +1,6 @@
 package com.riscure.trs.parameter.trace.definition;
 
+import com.riscure.trs.TRSMetaDataUtils;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
 
@@ -18,6 +19,10 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
         return values().stream().mapToInt(definition -> definition.getLength() * definition.getType().getByteSize()).sum();
     }
 
+    /**
+     * @return this map converted to a byte array, serialized according to the TRS V2 standard definition
+     * @throws RuntimeException if the map failed to serialize correctly
+     */
     public byte[] serialize() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (DataOutputStream dos = new DataOutputStream(baos)) {
@@ -39,27 +44,28 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
         }
     }
 
+    /**
+     * @param bytes a valid serialized Trace parameter definition map
+     * @return a new populated Trace parameter definition map as represented by the provided byte array
+     * @throws RuntimeException if the provided byte array does not represent a valid parameter definition map
+     */
     public static TraceParameterDefinitionMap deserialize(byte[] bytes) {
         TraceParameterDefinitionMap result = new TraceParameterDefinitionMap();
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
-            DataInputStream dis = new DataInputStream(bais);
-            //Read NE
-            short numberOfEntries = dis.readShort();
-            for (int k = 0; k < numberOfEntries; k++) {
-                //Read NL
-                short nameLength = dis.readShort();
-                byte[] nameBytes = new byte[nameLength];
-                int read = dis.read(nameBytes, 0, nameLength);
-                if (read != nameLength) throw new IOException("Error reading parameter name");
-                //Read N
-                String name = new String(nameBytes, StandardCharsets.UTF_8);
-                //Read definition
-                result.put(name, TraceParameterDefinition.deserialize(dis));
+        if (bytes != null && bytes.length > 0) {
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
+                DataInputStream dis = new DataInputStream(bais);
+                //Read NE
+                short numberOfEntries = dis.readShort();
+                for (int k = 0; k < numberOfEntries; k++) {
+                    String name = TRSMetaDataUtils.readName(dis);
+                    //Read definition
+                    result.put(name, TraceParameterDefinition.deserialize(dis));
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
             }
-            return result;
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
         }
+        return result;
     }
 
     /**
