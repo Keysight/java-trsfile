@@ -4,6 +4,7 @@ import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
+import java.io.DataInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -109,6 +110,16 @@ public class TRSMetaDataUtils {
             readAndStoreData(buffer, tag, length, trs);
         } while (tag != TRSTag.TRACE_BLOCK.getValue());
         return trs;
+    }
+
+    public static String readName(DataInputStream dis) throws IOException {
+        //Read NL
+        short nameLength = dis.readShort();
+        byte[] nameBytes = new byte[nameLength];
+        int read = dis.read(nameBytes, 0, nameLength);
+        if (read != nameLength) throw new IOException("Error reading parameter name");
+        //Read N
+        return new String(nameBytes, StandardCharsets.UTF_8);
     }
 
     private static void readAndStoreData(ByteBuffer buffer, byte tag, int length, TRSMetaData trsMD)

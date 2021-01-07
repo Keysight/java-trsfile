@@ -1,5 +1,6 @@
 package com.riscure.trs.parameter.traceset;
 
+import com.riscure.trs.TRSMetaDataUtils;
 import com.riscure.trs.types.*;
 import com.riscure.trs.parameter.primitive.*;
 
@@ -56,13 +57,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
                 //Read NE
                 short numberOfEntries = dis.readShort();
                 for (int k = 0; k < numberOfEntries; k++) {
-                    //Read NL
-                    short nameLength = dis.readShort();
-                    byte[] nameBytes = new byte[nameLength];
-                    int read = dis.read(nameBytes, 0, nameLength);
-                    if (read != nameLength) throw new IOException("Error reading parameter name");
-                    //Read N
-                    String name = new String(nameBytes, StandardCharsets.UTF_8);
+                    String name = TRSMetaDataUtils.readName(dis);
                     //Read value
                     result.put(name, TraceSetParameter.deserialize(dis));
                 }
