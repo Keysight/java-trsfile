@@ -55,7 +55,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-        } else if (!definitions.isEmpty()) {
+        } else if (definitions.totalSize() != 0) {
             throw new IllegalArgumentException(EMPTY_DATA_BUT_NONEMPTY_DEFINITIONS);
         }
         return result;
