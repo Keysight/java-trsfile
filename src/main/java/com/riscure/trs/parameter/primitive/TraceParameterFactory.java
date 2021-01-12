@@ -2,8 +2,11 @@ package com.riscure.trs.parameter.primitive;
 
 import com.riscure.trs.parameter.TraceParameter;
 
+import java.lang.reflect.Array;
+
 public class TraceParameterFactory {
     public static <T> TraceParameter create(Class<T> cls, T value) {
+        checkLength(cls, value);
         if (Byte.class.isAssignableFrom(cls)) {
             return new ByteArrayParameter(new byte[]{(Byte)value});
         } else if (byte[].class.isAssignableFrom(cls)) {
@@ -32,6 +35,12 @@ public class TraceParameterFactory {
             return new StringParameter((String)value);
         } else {
             throw new RuntimeException("Unsupported class: " + cls.getName());
+        }
+    }
+
+    public static <T> void checkLength(Class<T> cls, T value) {
+        if (cls.isArray() && Array.getLength(value) <= 0) {
+            throw new IllegalArgumentException("Array length must be positive and non-zero.");
         }
     }
 }
