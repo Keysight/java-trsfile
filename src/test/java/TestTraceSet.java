@@ -455,4 +455,17 @@ public class TestTraceSet {
         }
         assertEquals(ParameterType.values().length, errors);
     }
+
+    /**
+     * This test checks whether an empty array is serialized and deserialized correctly
+     * Expected: an exception is thrown when adding an empty parameter
+     */
+    @Test
+    public void testEmptyArrayParameter() {
+        TRSMetaData metaData = TRSMetaData.create();
+        //CREATE TRACE
+        String name = UUID.randomUUID().toString() + TRS;
+        TraceParameterMap parameters = new TraceParameterMap();
+        assertThrows(IllegalArgumentException.class, () -> parameters.put("EMPTY", new byte[0]));
+    }
 }
