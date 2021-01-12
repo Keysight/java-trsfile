@@ -5,6 +5,13 @@ import com.riscure.trs.parameter.TraceParameter;
 import java.lang.reflect.Array;
 
 public class TraceParameterFactory {
+    /**
+     * Create a new TraceParameter from the provided type and value
+     * @param cls the class of the type of the parameter
+     * @param value the value of the parameter
+     * @param <T> the generic type of the parameter
+     * @return a new TraceParameter
+     */
     public static <T> TraceParameter create(Class<T> cls, T value) {
         checkLength(cls, value);
         if (Byte.class.isAssignableFrom(cls)) {
@@ -43,4 +50,6 @@ public class TraceParameterFactory {
             throw new IllegalArgumentException("Array length must be positive and non-zero.");
         }
     }
+
+    private TraceParameterFactory() {}
 }
