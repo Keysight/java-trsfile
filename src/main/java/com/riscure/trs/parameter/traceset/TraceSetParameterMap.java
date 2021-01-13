@@ -1,8 +1,8 @@
 package com.riscure.trs.parameter.traceset;
 
 import com.riscure.trs.TRSMetaDataUtils;
+import com.riscure.trs.parameter.primitive.TraceParameterFactory;
 import com.riscure.trs.types.*;
-import com.riscure.trs.parameter.primitive.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -65,7 +65,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
                 throw new RuntimeException(ex);
             }
         }
-        return result;
+        return UnmodifiableTraceSetParameterMap.of(result);
     }
 
     public void put(String key, byte value) {

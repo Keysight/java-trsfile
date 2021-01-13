@@ -44,7 +44,7 @@ public class TRSMetaData {
      * @param overwriteNonDefault whether to overwrite non-default values currently saved for this tag
      */
     public void put(TRSTag tag, Object data, boolean overwriteNonDefault) {
-        if (tag.getType() != data.getClass()) {
+        if (!tag.getType().isAssignableFrom(data.getClass())) {
             throw new IllegalArgumentException(
                     String.format(INCOMPATIBLE_TYPES, tag.name(), tag.getType(), data.getClass()));
         }
