@@ -61,10 +61,24 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
         return result;
     }
 
+    /**
+     * Add a new parameter to the map
+     * @param typedKey the {@link TypedKey} defining the name and the type of the added value
+     * @param value the value of the parameter to add
+     * @param <T> the type of the parameter
+     * @throws IllegalArgumentException if the value is not valid
+     */
     public <T> void put(TypedKey<T> typedKey, T value) {
         put(typedKey.getKey(), TraceParameterFactory.create(typedKey.getCls(), value));
     }
 
+    /**
+     * Get a parameter from the map
+     * @param typedKey the {@link TypedKey} defining the name and the type of the value to retrieve
+     * @param <T> the type of the parameter
+     * @return the value of the requested parameter
+     * @throws ClassCastException if the requested value is not of the expected type
+     */
     public <T> T get(TypedKey<T> typedKey) {
         TraceParameter traceParameter = Optional.ofNullable(get(typedKey.getKey()))
                 .orElseThrow(() -> new NoSuchElementException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
