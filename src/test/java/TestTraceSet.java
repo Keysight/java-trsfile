@@ -462,10 +462,6 @@ public class TestTraceSet {
      */
     @Test
     public void testEmptyArrayParameter() {
-        TRSMetaData metaData = TRSMetaData.create();
-        //CREATE TRACE
-        String name = UUID.randomUUID().toString() + TRS;
-        TraceParameterMap parameters = new TraceParameterMap();
-        assertThrows(IllegalArgumentException.class, () -> parameters.put("EMPTY", new byte[0]));
+        assertThrows(IllegalArgumentException.class, () -> new TraceParameterMap().put("EMPTY", new byte[0]));
     }
 }
