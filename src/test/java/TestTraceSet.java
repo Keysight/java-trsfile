@@ -7,6 +7,7 @@ import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 import com.riscure.trs.types.*;
@@ -456,6 +457,21 @@ public class TestTraceSet {
         assertEquals(ParameterType.values().length, errors);
     }
 
+    /**
+     * This test was added to test #26: Trace(Set)ParameterMap is modifiable in read only mode
+     */
+    @Test
+    public void testModificationAfterReadback() throws IOException, TRSFormatException {
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + BYTES_TRS)) {
+            assertThrows(UnsupportedOperationException.class, () -> readable.getMetaData().getTraceSetParameters().put("SHOULD_FAIL", 0));
+            assertThrows(UnsupportedOperationException.class, () -> readable.getMetaData().getTraceParameterDefinitions().put("SHOULD_FAIL", new TraceParameterDefinition<TraceParameter>(ParameterType.BYTE, (short)1, (short)1)));
+            for (int k = 0; k < NUMBER_OF_TRACES; k++) {
+                Trace t = readable.get(k);
+                assertThrows(UnsupportedOperationException.class, () -> t.getParameters().put("SHOULD_FAIL", 0));
+            }
+        }
+    }
+    
     /**
      * This test checks whether an empty array is serialized and deserialized correctly
      * Expected: an exception is thrown when adding an empty parameter
