@@ -2,7 +2,9 @@ package com.riscure.trs;
 
 import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.trace.definition.UnmodifiableTraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
+import com.riscure.trs.parameter.traceset.UnmodifiableTraceSetParameterMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -111,10 +113,10 @@ public class TRSMetaData {
      */
     public TraceSetParameterMap getTraceSetParameters() {
         Object o = metaData.get(TRSTag.TRACE_SET_PARAMETERS);
-        if (o instanceof TraceSetParameterMap) {
+        if (TraceSetParameterMap.class.isAssignableFrom(o.getClass())) {
             return (TraceSetParameterMap) o;
         }
-        return new TraceSetParameterMap();
+        return UnmodifiableTraceSetParameterMap.of(new TraceSetParameterMap());
     }
 
     /**
@@ -123,10 +125,10 @@ public class TRSMetaData {
      */
     public TraceParameterDefinitionMap getTraceParameterDefinitions() {
         Object o = metaData.get(TRSTag.TRACE_PARAMETER_DEFINITIONS);
-        if (o instanceof TraceParameterDefinitionMap) {
+        if (TraceParameterDefinitionMap.class.isAssignableFrom(o.getClass())) {
             return (TraceParameterDefinitionMap) o;
         }
-        return new TraceParameterDefinitionMap();
+        return UnmodifiableTraceParameterDefinitionMap.of(new TraceParameterDefinitionMap());
     }
 
     /**

@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * This class represents the header definitions of all user-added parameters in the trace format
+ * This class represents the header definitions of all user-added local parameters in the trace format
  *
  * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
  */
@@ -65,7 +65,7 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
                 throw new RuntimeException(ex);
             }
         }
-        return result;
+        return UnmodifiableTraceParameterDefinitionMap.of(result);
     }
 
     /**
