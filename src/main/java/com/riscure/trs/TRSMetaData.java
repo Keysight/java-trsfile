@@ -2,7 +2,9 @@ package com.riscure.trs;
 
 import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.trace.definition.UnmodifiableTraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
+import com.riscure.trs.parameter.traceset.UnmodifiableTraceSetParameterMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +46,7 @@ public class TRSMetaData {
      * @param overwriteNonDefault whether to overwrite non-default values currently saved for this tag
      */
     public void put(TRSTag tag, Object data, boolean overwriteNonDefault) {
-        if (tag.getType() != data.getClass()) {
+        if (!tag.getType().isAssignableFrom(data.getClass())) {
             throw new IllegalArgumentException(
                     String.format(INCOMPATIBLE_TYPES, tag.name(), tag.getType(), data.getClass()));
         }
@@ -111,10 +113,10 @@ public class TRSMetaData {
      */
     public TraceSetParameterMap getTraceSetParameters() {
         Object o = metaData.get(TRSTag.TRACE_SET_PARAMETERS);
-        if (o instanceof TraceSetParameterMap) {
+        if (TraceSetParameterMap.class.isAssignableFrom(o.getClass())) {
             return (TraceSetParameterMap) o;
         }
-        return new TraceSetParameterMap();
+        return UnmodifiableTraceSetParameterMap.of(new TraceSetParameterMap());
     }
 
     /**
@@ -123,10 +125,10 @@ public class TRSMetaData {
      */
     public TraceParameterDefinitionMap getTraceParameterDefinitions() {
         Object o = metaData.get(TRSTag.TRACE_PARAMETER_DEFINITIONS);
-        if (o instanceof TraceParameterDefinitionMap) {
+        if (TraceParameterDefinitionMap.class.isAssignableFrom(o.getClass())) {
             return (TraceParameterDefinitionMap) o;
         }
-        return new TraceParameterDefinitionMap();
+        return UnmodifiableTraceParameterDefinitionMap.of(new TraceParameterDefinitionMap());
     }
 
     /**
