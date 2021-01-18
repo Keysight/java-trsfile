@@ -480,4 +480,36 @@ public class TestTraceSet {
     public void testEmptyArrayParameter() {
         assertThrows(IllegalArgumentException.class, () -> new TraceParameterMap().put("EMPTY", new byte[0]));
     }
+
+    /**
+     * This test checks whether a Trace(Set)ParameterMap correctly works with typed keys
+     */
+    @Test
+    public void testContainsTypedKey() {
+        TraceParameterMap tpm = new TraceParameterMap();
+        TraceSetParameterMap tspm = new TraceSetParameterMap();
+        String rawKey = "BYTE";
+        ByteTypeKey typedKey = new ByteTypeKey(rawKey);
+        tpm.put(typedKey, (byte)1);
+        tspm.put(typedKey, (byte)2);
+
+        assertTrue(tpm.containsKey(typedKey));
+        assertTrue(tspm.containsKey(typedKey));
+    }
+
+    /**
+     * This test checks whether a Trace(Set)ParameterMap correctly fails with a typed key of the incorrect type
+     */
+    @Test
+    public void testContainsWrongTypedKey() {
+        TraceParameterMap tpm = new TraceParameterMap();
+        TraceSetParameterMap tspm = new TraceSetParameterMap();
+        String rawKey = "BYTE";
+        ByteTypeKey typedKey = new ByteTypeKey(rawKey);
+        tpm.put(rawKey, 1);     //actually an int
+        tspm.put(rawKey, 2);     //actually an int
+
+        assertThrows(ClassCastException.class, () -> tpm.containsKey(typedKey));
+        assertThrows(ClassCastException.class, () -> tspm.containsKey(typedKey));
+    }
 }
