@@ -62,6 +62,17 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     }
 
     /**
+     * @param key the typed key to check for
+     * @param <T> the type of the parameter
+     * @return whether the key is present in the map AND the parameter type matches the requested key's type
+     */
+    public <T> boolean containsKey(TypedKey<T> key) {
+        boolean containsKey = super.containsKey(key.getKey());
+        if (containsKey) return get(key).getClass().equals(key.getCls());
+        return false;
+    }
+
+    /**
      * Add a new parameter to the map
      * @param typedKey the {@link TypedKey} defining the name and the type of the added value
      * @param value the value of the parameter to add

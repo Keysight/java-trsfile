@@ -68,6 +68,45 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
         return UnmodifiableTraceSetParameterMap.of(result);
     }
 
+    /**
+     * @param key the typed key to check for
+     * @param <T> the type of the parameter
+     * @return whether the key is present in the map AND the parameter type matches the requested key's type
+     */
+    public <T> boolean containsKey(TypedKey<T> key) {
+        boolean containsKey = super.containsKey(key.getKey());
+        if (containsKey) return get(key).getClass().equals(key.getCls());
+        return false;
+    }
+
+    /**
+     * Add a new parameter to the map
+     * @param typedKey the {@link TypedKey} defining the name and the type of the added value
+     * @param value the value of the parameter to add
+     * @param <T> the type of the parameter
+     * @throws IllegalArgumentException if the value is not valid
+     */
+    public <T> void put(TypedKey<T> typedKey, T value) {
+        put(typedKey.getKey(), new TraceSetParameter(TraceParameterFactory.create(typedKey.getCls(), value)));
+    }
+
+    /**
+     * Get a parameter from the map
+     * @param typedKey the {@link TypedKey} defining the name and the type of the value to retrieve
+     * @param <T> the type of the parameter
+     * @return the value of the requested parameter
+     * @throws ClassCastException if the requested value is not of the expected type
+     */
+    public <T> T get(TypedKey<T> typedKey) {
+        TraceSetParameter traceSetParameter = Optional.ofNullable(get(typedKey.getKey()))
+                .orElseThrow(() -> new NoSuchElementException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
+        if (traceSetParameter.getValue().length() == 1) {
+            return typedKey.cast(traceSetParameter.getValue().getScalarValue());
+        } else {
+            return typedKey.cast(traceSetParameter.getValue().getValue());
+        }
+    }
+
     public void put(String key, byte value) {
         put(key, new TraceSetParameter(TraceParameterFactory.create(Byte.class, value)));
     }
@@ -118,34 +157,6 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
 
     public void put(String key, String value) {
         put(key, new TraceSetParameter(TraceParameterFactory.create(String.class, value)));
-    }
-
-    /**
-     * Add a new parameter to the map
-     * @param typedKey the {@link TypedKey} defining the name and the type of the added value
-     * @param value the value of the parameter to add
-     * @param <T> the type of the parameter
-     * @throws IllegalArgumentException if the value is not valid
-     */
-    public <T> void put(TypedKey<T> typedKey, T value) {
-        put(typedKey.getKey(), new TraceSetParameter(TraceParameterFactory.create(typedKey.getCls(), value)));
-    }
-
-    /**
-     * Get a parameter from the map
-     * @param typedKey the {@link TypedKey} defining the name and the type of the value to retrieve
-     * @param <T> the type of the parameter
-     * @return the value of the requested parameter
-     * @throws ClassCastException if the requested value is not of the expected type
-     */
-    public <T> T get(TypedKey<T> typedKey) {
-        TraceSetParameter traceSetParameter = Optional.ofNullable(get(typedKey.getKey()))
-                .orElseThrow(() -> new NoSuchElementException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
-        if (traceSetParameter.getValue().length() == 1) {
-            return typedKey.cast(traceSetParameter.getValue().getScalarValue());
-        } else {
-            return typedKey.cast(traceSetParameter.getValue().getValue());
-        }
     }
 
     public byte getByte(String key) {
