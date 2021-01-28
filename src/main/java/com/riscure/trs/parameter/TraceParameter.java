@@ -66,6 +66,8 @@ public abstract class TraceParameter {
                 return DoubleArrayParameter.deserialize(dis, length);
             case STRING:
                 return StringParameter.deserialize(dis, length);
+            case BOOL:
+                return BooleanArrayParameter.deserialize(dis, length);
             default:
                 throw new IllegalArgumentException("Unknown parameter type: " + type.name());
         }

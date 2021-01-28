@@ -7,7 +7,8 @@ public enum ParameterType {
     FLOAT (0x14, Float.BYTES, Float.class, float[].class),
     LONG (0x08, Long.BYTES, Long.class, long[].class),
     DOUBLE (0x18, Double.BYTES, Double.class, double[].class),
-    STRING (0x20, Byte.BYTES, String.class, String.class);
+    STRING (0x20, Byte.BYTES, String.class, String.class),
+    BOOL (0x31, Byte.BYTES, Boolean.class, boolean[].class);
 
     private final byte value;
     private final int byteSize;

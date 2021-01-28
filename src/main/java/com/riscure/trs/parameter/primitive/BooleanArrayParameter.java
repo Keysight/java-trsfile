@@ -3,30 +3,32 @@ package com.riscure.trs.parameter.primitive;
 import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
-public class IntArrayParameter extends TraceParameter {
-    private final int[] value;
+public class BooleanArrayParameter extends TraceParameter {
+    private final boolean[] value;
 
-    public IntArrayParameter(int length) {
-        value = new int[length];
+    public BooleanArrayParameter(int length) {
+        value = new boolean[length];
     }
 
-    public IntArrayParameter(int[] value) {
+    public BooleanArrayParameter(boolean[] value) {
         this.value = value;
     }
 
     public void serialize(DataOutputStream dos) throws IOException {
-        for (int i : value) {
-            dos.writeInt(i);
+        for (boolean i : value) {
+            dos.writeByte(i ? 1 : 0);
         }
     }
 
-    public static IntArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
-        IntArrayParameter result = new IntArrayParameter(length);
+    public static BooleanArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
+        BooleanArrayParameter result = new BooleanArrayParameter(length);
         for (int k = 0; k < length; k++) {
-            result.value[k] = dis.readInt();
+            result.value[k] = dis.readByte() != 0;
         }
         return result;
     }
@@ -38,16 +40,16 @@ public class IntArrayParameter extends TraceParameter {
 
     @Override
     public ParameterType getType() {
-        return ParameterType.INT;
+        return ParameterType.BOOL;
     }
 
     @Override
-    public int[] getValue() {
+    public boolean[] getValue() {
         return value;
     }
 
     @Override
-    public Integer getScalarValue() {
+    public Boolean getScalarValue() {
         if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
         return getValue()[0];
     }
@@ -62,7 +64,7 @@ public class IntArrayParameter extends TraceParameter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        IntArrayParameter that = (IntArrayParameter) o;
+        BooleanArrayParameter that = (BooleanArrayParameter) o;
 
         return Arrays.equals(value, that.value);
     }
