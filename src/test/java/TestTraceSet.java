@@ -182,12 +182,14 @@ public class TestTraceSet {
         parameters.put("LONG", (long) 5);
         parameters.put("DOUBLE", (double) 6);
         parameters.put("STRING", String.format("%3d", 7));
+        parameters.put("BOOLEAN", true);
         parameters.put("BYTEARRAY", new byte[]{(byte) 8, (byte) 9, (byte) 0});
         parameters.put("SHORTARRAY", new short[]{(short) 1, (short) 2, (short) 3});
         parameters.put("INTARRAY", new int[]{4, 5, 6});
         parameters.put("FLOATARRAY", new float[]{(float) 7, (float) 8, (float) 9});
         parameters.put("LONGARRAY", new long[]{0, 1, 2});
         parameters.put("DOUBLEARRAY", new double[]{3, 4, 5});
+        parameters.put("BOOLEANARRAY", new boolean[]{true, false, true, false, true, true});
         parameters.put("TVLA", TVLA_STRING_VALUE);
         //parameters.put("XYZ offset", XYZ_TEST_VALUE);
         metaData.put(TRSTag.TRACE_SET_PARAMETERS, parameters);
@@ -283,12 +285,14 @@ public class TestTraceSet {
                 parameters.put("LONG", (long) k);
                 parameters.put("DOUBLE", (double) k);
                 parameters.put("STRING", String.format("%3d", k));
+                parameters.put("BOOLEAN", true);
                 parameters.put("BYTEARRAY", new byte[]{(byte) k, (byte) k, (byte) k});
                 parameters.put("SHORTARRAY", new short[]{(short) k, (short) k, (short) k});
                 parameters.put("INTARRAY", new int[]{k, k, k});
                 parameters.put("FLOATARRAY", new float[]{(float) k, (float) k, (float) k});
                 parameters.put("LONGARRAY", new long[]{k, k, k});
                 parameters.put("DOUBLEARRAY", new double[]{k, k, k});
+                parameters.put("BOOLEANARRAY", new boolean[]{true, false, true, false, true, true});
                 traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
                 testParameters.add(parameters);
             }
@@ -367,6 +371,15 @@ public class TestTraceSet {
                         case STRING:
                             assertEquals(correctValue.getString(key), trace.getParameters().getString(key));
                             break;
+                        case BOOL:
+                            if (parameter.getLength() == 1) {
+                                assertEquals(correctValue.getBoolean(key), trace.getParameters().getBoolean(key));
+                            } else {
+                                assertArrayEquals(correctValue.getBooleanArray(key), trace.getParameters().getBooleanArray(key));
+                            }
+                            break;
+                        default:
+                            throw new RuntimeException("Unexpected type: " + parameter.getType());
                     }
                 });
             }
@@ -403,6 +416,9 @@ public class TestTraceSet {
                             break;
                         case STRING:
                             typedKey = new StringTypeKey(key);
+                            break;
+                        case BOOL:
+                            typedKey = parameter.getLength() > 1 ? new BooleanArrayTypeKey(key) : new BooleanTypeKey(key);
                             break;
                         default:
                             throw new RuntimeException("Unexpected type: " + parameter.getType());

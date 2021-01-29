@@ -1,7 +1,6 @@
 package com.riscure.trs.parameter.traceset;
 
 import com.riscure.trs.TRSMetaDataUtils;
-import com.riscure.trs.parameter.primitive.TraceParameterFactory;
 import com.riscure.trs.types.*;
 
 import java.io.*;
@@ -87,7 +86,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
      * @throws IllegalArgumentException if the value is not valid
      */
     public <T> void put(TypedKey<T> typedKey, T value) {
-        put(typedKey.getKey(), new TraceSetParameter(TraceParameterFactory.create(typedKey.getCls(), value)));
+        put(typedKey.getKey(), new TraceSetParameter(typedKey.createParameter(value)));
     }
 
     /**
@@ -108,55 +107,63 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
     }
 
     public void put(String key, byte value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(Byte.class, value)));
+        put(new ByteTypeKey(key), value);
     }
 
     public void put(String key, byte[] value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(byte[].class, value)));
+        put(new ByteArrayTypeKey(key), value);
     }
 
     public void put(String key, short value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(Short.class, value)));
+        put(new ShortTypeKey(key), value);
     }
 
     public void put(String key, short[] value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(short[].class, value)));
+        put(new ShortArrayTypeKey(key), value);
     }
 
     public void put(String key, int value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(Integer.class, value)));
+        put(new IntegerTypeKey(key), value);
     }
 
     public void put(String key, int[] value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(int[].class, value)));
+        put(new IntegerArrayTypeKey(key), value);
     }
 
     public void put(String key, float value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(Float.class, value)));
+        put(new FloatTypeKey(key), value);
     }
 
     public void put(String key, float[] value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(float[].class, value)));
+        put(new FloatArrayTypeKey(key), value);
     }
 
     public void put(String key, long value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(Long.class, value)));
+        put(new LongTypeKey(key), value);
     }
 
     public void put(String key, long[] value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(long[].class, value)));
+        put(new LongArrayTypeKey(key), value);
     }
 
     public void put(String key, double value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(Double.class, value)));
+        put(new DoubleTypeKey(key), value);
     }
 
     public void put(String key, double[] value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(double[].class, value)));
+        put(new DoubleArrayTypeKey(key), value);
     }
 
     public void put(String key, String value) {
-        put(key, new TraceSetParameter(TraceParameterFactory.create(String.class, value)));
+        put(new StringTypeKey(key), value);
+    }
+
+    public void put(String key, boolean value) {
+        put(new BooleanTypeKey(key), value);
+    }
+
+    public void put(String key, boolean[] value) {
+        put(new BooleanArrayTypeKey(key), value);
     }
 
     public byte getByte(String key) {
@@ -209,5 +216,13 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
 
     public String getString(String key) {
         return get(new StringTypeKey(key));
+    }
+
+    public boolean getBoolean(String key) {
+        return get(new BooleanTypeKey(key));
+    }
+
+    public boolean[] getBooleanArray(String key) {
+        return get(new BooleanArrayTypeKey(key));
     }
 }
