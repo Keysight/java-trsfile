@@ -11,7 +11,6 @@ import java.util.Map;
 
 /**
  * This class represents the header definitions of all user-added local parameters in the trace format
- *
  * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
  */
 public class TraceParameterDefinitionMap extends LinkedHashMap<String, TraceParameterDefinition<TraceParameter>> {
@@ -70,6 +69,7 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
 
     /**
      * Create a set of definitions based on the parameters present in a trace.
+     *
      * @param parameters the parameters of the trace
      * @return a set of definitions based on the parameters present in a trace
      */
@@ -83,5 +83,21 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
             }
         }
         return definitions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TraceParameterDefinitionMap that = (TraceParameterDefinitionMap) o;
+        if (this.size() != that.size()) return false;
+
+        return this.entrySet().stream().allMatch(e -> e.getValue().equals(that.get(e.getKey())));
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

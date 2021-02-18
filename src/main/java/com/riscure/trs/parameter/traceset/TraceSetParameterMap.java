@@ -225,4 +225,20 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
     public boolean[] getBooleanArray(String key) {
         return get(new BooleanArrayTypeKey(key));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TraceSetParameterMap that = (TraceSetParameterMap)o;
+        if (this.size() != that.size()) return false;
+
+        return this.entrySet().stream().allMatch(e -> e.getValue().equals(that.get(e.getKey())));
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 }

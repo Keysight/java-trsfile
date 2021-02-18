@@ -46,4 +46,24 @@ public class TraceParameterDefinition<T extends TraceParameter> {
     public short getLength() {
         return length;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TraceParameterDefinition<?> that = (TraceParameterDefinition<?>) o;
+
+        if (offset != that.offset) return false;
+        if (length != that.length) return false;
+        return type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type != null ? type.hashCode() : 0;
+        result = 31 * result + (int) offset;
+        result = 31 * result + (int) length;
+        return result;
+    }
 }
