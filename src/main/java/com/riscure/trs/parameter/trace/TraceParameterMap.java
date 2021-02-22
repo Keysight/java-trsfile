@@ -22,7 +22,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
 
     public TraceParameterMap(TraceParameterMap toCopy) {
         this();
-        putAll(toCopy);
+        toCopy.forEach((key, value) -> put(key, value.copy()));
     }
 
     /**

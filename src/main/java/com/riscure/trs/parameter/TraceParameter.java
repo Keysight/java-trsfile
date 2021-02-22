@@ -31,6 +31,11 @@ public abstract class TraceParameter {
     public abstract Object getValue();
 
     /**
+     * @return a newly created parameter containing the same information as this one.
+     */
+    public abstract TraceParameter copy();
+
+    /**
      * @return The value of the parameter as a simple value. Will cause an exception if called on an array type.
      */
     public abstract Object getScalarValue();

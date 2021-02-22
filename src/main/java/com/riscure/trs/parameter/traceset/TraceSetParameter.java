@@ -15,6 +15,10 @@ public class TraceSetParameter {
         this.value = instance;
     }
 
+    public TraceSetParameter(TraceSetParameter toCopy) {
+        this(toCopy.getValue());
+    }
+
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(value.getType().getValue());
         dos.writeShort(value.length());
@@ -29,6 +33,13 @@ public class TraceSetParameter {
 
     public TraceParameter getValue() {
         return value;
+    }
+
+    /**
+     * @return a new instance of a TraceSetParameter containing a copy of its trace parameter
+     */
+    public TraceSetParameter copy() {
+        return new TraceSetParameter(this);
     }
 
     @Override

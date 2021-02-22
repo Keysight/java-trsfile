@@ -13,7 +13,7 @@ public class UnmodifiableTraceSetParameterMap extends TraceSetParameterMap {
             new UnsupportedOperationException("This trace set is in read mode, and the parameters cannot be modified.");
 
     private UnmodifiableTraceSetParameterMap(TraceSetParameterMap delegate) {
-        super.putAll(delegate);
+        super.putAll(delegate.copy());
     }
 
     public static TraceSetParameterMap of(TraceSetParameterMap delegate) {

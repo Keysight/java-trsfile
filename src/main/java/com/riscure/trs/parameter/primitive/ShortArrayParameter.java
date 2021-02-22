@@ -19,6 +19,10 @@ public class ShortArrayParameter extends TraceParameter {
         this.value = value;
     }
 
+    public ShortArrayParameter(ShortArrayParameter toCopy) {
+        this(toCopy.getValue().clone());
+    }
+
     public void serialize(DataOutputStream dos) throws IOException {
         for (short i : value) {
             dos.writeShort(i);
@@ -46,6 +50,11 @@ public class ShortArrayParameter extends TraceParameter {
     @Override
     public short[] getValue() {
         return value;
+    }
+
+    @Override
+    public ShortArrayParameter copy() {
+        return new ShortArrayParameter(this);
     }
 
     @Override

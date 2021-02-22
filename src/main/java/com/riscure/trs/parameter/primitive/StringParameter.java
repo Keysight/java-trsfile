@@ -17,6 +17,10 @@ public class StringParameter extends TraceParameter {
         this.value = value;
     }
 
+    public StringParameter(StringParameter toCopy) {
+        this(toCopy.getValue());
+    }
+
     public void serialize(DataOutputStream dos) throws IOException {
         dos.write(value.getBytes(StandardCharsets.UTF_8));
     }
@@ -41,6 +45,11 @@ public class StringParameter extends TraceParameter {
     @Override
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public StringParameter copy() {
+        return new StringParameter(this);
     }
 
     @Override

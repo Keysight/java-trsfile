@@ -19,6 +19,10 @@ public class BooleanArrayParameter extends TraceParameter {
         this.value = value;
     }
 
+    public BooleanArrayParameter(BooleanArrayParameter toCopy) {
+        this(toCopy.getValue().clone());
+    }
+
     public void serialize(DataOutputStream dos) throws IOException {
         for (boolean i : value) {
             dos.writeByte(i ? 1 : 0);
@@ -46,6 +50,11 @@ public class BooleanArrayParameter extends TraceParameter {
     @Override
     public boolean[] getValue() {
         return value;
+    }
+
+    @Override
+    public BooleanArrayParameter copy() {
+        return new BooleanArrayParameter(this);
     }
 
     @Override

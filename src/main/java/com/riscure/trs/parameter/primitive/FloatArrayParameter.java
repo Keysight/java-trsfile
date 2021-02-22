@@ -3,7 +3,9 @@ package com.riscure.trs.parameter.primitive;
 import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class FloatArrayParameter extends TraceParameter {
@@ -15,6 +17,10 @@ public class FloatArrayParameter extends TraceParameter {
 
     public FloatArrayParameter(float[] value) {
         this.value = value;
+    }
+
+    public FloatArrayParameter(FloatArrayParameter toCopy) {
+        this(toCopy.getValue().clone());
     }
 
     public void serialize(DataOutputStream dos) throws IOException {
@@ -44,6 +50,11 @@ public class FloatArrayParameter extends TraceParameter {
     @Override
     public float[] getValue() {
         return value;
+    }
+
+    @Override
+    public FloatArrayParameter copy() {
+        return new FloatArrayParameter(this);
     }
 
     @Override

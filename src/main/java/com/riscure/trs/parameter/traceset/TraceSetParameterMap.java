@@ -24,7 +24,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
 
     public TraceSetParameterMap(TraceSetParameterMap toCopy) {
         this();
-        putAll(toCopy);
+        toCopy.forEach((key, value) -> put(key, value.copy()));
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.riscure.trs.parameter.primitive;
 
-import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.HexUtils;
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 
 import java.io.DataInputStream;
@@ -19,6 +19,10 @@ public class ByteArrayParameter extends TraceParameter {
 
     public ByteArrayParameter(byte[] value) {
         this.value = value;
+    }
+
+    public ByteArrayParameter(ByteArrayParameter toCopy) {
+        this(toCopy.getValue().clone());
     }
 
     public void serialize(DataOutputStream dos) throws IOException {
@@ -45,6 +49,11 @@ public class ByteArrayParameter extends TraceParameter {
     @Override
     public byte[] getValue() {
         return value;
+    }
+
+    @Override
+    public ByteArrayParameter copy() {
+        return new ByteArrayParameter(this);
     }
 
     @Override
