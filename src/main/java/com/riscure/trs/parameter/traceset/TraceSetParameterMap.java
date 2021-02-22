@@ -18,6 +18,22 @@ import java.util.Optional;
 public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParameter> {
     private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
 
+    public TraceSetParameterMap() {
+        super();
+    }
+
+    public TraceSetParameterMap(TraceSetParameterMap toCopy) {
+        this();
+        putAll(toCopy);
+    }
+
+    /**
+     * @return a new instance of a TraceParameterMap containing all the same values as this one
+     */
+    public TraceSetParameterMap copy() {
+        return new TraceSetParameterMap(this);
+    }
+
     /**
      * @return this map converted to a byte array, serialized according to the TRS V2 standard definition
      * @throws RuntimeException if the map failed to serialize correctly
