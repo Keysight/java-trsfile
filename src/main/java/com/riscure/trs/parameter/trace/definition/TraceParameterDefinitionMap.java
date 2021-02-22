@@ -14,6 +14,23 @@ import java.util.Map;
  * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
  */
 public class TraceParameterDefinitionMap extends LinkedHashMap<String, TraceParameterDefinition<TraceParameter>> {
+
+    public TraceParameterDefinitionMap() {
+        super();
+    }
+
+    public TraceParameterDefinitionMap(TraceParameterDefinitionMap toCopy) {
+        this();
+        putAll(toCopy);
+    }
+
+    /**
+     * @return a new instance of a TraceParameterDefinitionMap containing all the same values as this one
+     */
+    public TraceParameterDefinitionMap copy() {
+        return new TraceParameterDefinitionMap(this);
+    }
+
     public int totalSize() {
         return values().stream().mapToInt(definition -> definition.getLength() * definition.getType().getByteSize()).sum();
     }

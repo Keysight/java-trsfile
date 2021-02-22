@@ -19,6 +19,10 @@ public class DoubleArrayParameter extends TraceParameter {
         this.value = value;
     }
 
+    public DoubleArrayParameter(DoubleArrayParameter toCopy) {
+        this(toCopy.getValue().clone());
+    }
+
     public void serialize(DataOutputStream dos) throws IOException {
         for (double i : value) {
             dos.writeDouble(i);
@@ -46,6 +50,11 @@ public class DoubleArrayParameter extends TraceParameter {
     @Override
     public double[] getValue() {
         return value;
+    }
+
+    @Override
+    public DoubleArrayParameter copy() {
+        return new DoubleArrayParameter(this);
     }
 
     @Override

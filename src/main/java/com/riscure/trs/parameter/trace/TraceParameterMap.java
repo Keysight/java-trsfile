@@ -16,6 +16,22 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     private static final String EMPTY_DATA_BUT_NONEMPTY_DEFINITIONS = "The provided byte array is null or empty, but the provided definitions are not";
     private static final String DATA_LENGTH_DEFINITIONS_MISMATCH = "The provided byte array (%d bytes) does not match the total definitions length (%d bytes)";
 
+    public TraceParameterMap() {
+        super();
+    }
+
+    public TraceParameterMap(TraceParameterMap toCopy) {
+        this();
+        toCopy.forEach((key, value) -> put(key, value.copy()));
+    }
+
+    /**
+     * @return a new instance of a TraceParameterMap containing all the same values as this one
+     */
+    public TraceParameterMap copy() {
+        return new TraceParameterMap(this);
+    }
+
     /**
      * @return a concatenation of all trace parameters in this map, individually converted to byte arrays
      * @throws RuntimeException if the map failed to serialize correctly
