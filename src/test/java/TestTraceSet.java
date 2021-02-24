@@ -1,12 +1,10 @@
-import com.riscure.trs.TRSFormatException;
-import com.riscure.trs.TRSMetaData;
-import com.riscure.trs.Trace;
-import com.riscure.trs.TraceSet;
+import com.riscure.trs.*;
 import com.riscure.trs.enums.Encoding;
 import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.ByteArrayParameter;
+import com.riscure.trs.parameter.primitive.Ref;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
 import com.riscure.trs.parameter.trace.UnmodifiableTraceParameterMap;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
@@ -313,7 +311,8 @@ public class TestTraceSet {
                 TraceParameterMap correctValue = testParameters.get(k);
                 parameterDefinitions.forEach((key, parameter) -> {
                     TraceParameter traceParameter = trace.getParameters().get(key);
-                    assertEquals(traceParameter, correctValue.get(key));
+                    System.out.println(traceParameter);
+                    assertEquals(correctValue.get(key), traceParameter);
                 });
             }
         }
@@ -380,6 +379,13 @@ public class TestTraceSet {
                                 assertArrayEquals(correctValue.getBooleanArray(key), trace.getParameters().getBooleanArray(key));
                             }
                             break;
+                        case REF:
+                            if (parameter.getLength() == 1) {
+                                assertEquals(correctValue.getRef(key), trace.getParameters().getRef(key));
+                            } else {
+                                assertArrayEquals(correctValue.getRefArray(key), trace.getParameters().getRefArray(key));
+                            }
+                            break;
                         default:
                             throw new RuntimeException("Unexpected type: " + parameter.getType());
                     }
@@ -421,6 +427,9 @@ public class TestTraceSet {
                             break;
                         case BOOL:
                             typedKey = parameter.getLength() > 1 ? new BooleanArrayTypeKey(key) : new BooleanTypeKey(key);
+                            break;
+                        case REF:
+                            typedKey = parameter.getLength() > 1 ? new RefArrayTypeKey(key) : new RefTypeKey(key);
                             break;
                         default:
                             throw new RuntimeException("Unexpected type: " + parameter.getType());
@@ -559,5 +568,26 @@ public class TestTraceSet {
         ba[1] = 6;
         byte[] baCopy = (byte[]) copy.get("BA").getValue();
         assertFalse("Arrays should not be equal, but they are", Arrays.equals(baCopy, ba));
+    }
+
+    @Test
+    public void testReferenceType() throws IOException, TRSFormatException {
+        TRSMetaData metaData = TRSMetaData.create();
+        String options = "ABC,DEFGH,SPEJFJS,g5$FSH";
+        metaData.getTraceSetParameters().put(new StringTypeKey("JE_MOEDER"), options);
+        List<TraceParameterMap> testParameters = new ArrayList<>();
+        //CREATE TRACE
+        String name = UUID.randomUUID().toString() + TRS;
+        try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name, metaData)) {
+            for (int k = 0; k < 25; k++) {
+                TraceParameterMap parameters = new TraceParameterMap();
+                parameters.put(new RefArrayTypeKey("JE_MOEDER"), new Ref[]{new Ref(k%4), new Ref((k+1)%4)});
+                traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
+                testParameters.add(parameters);
+            }
+        }
+        readBackGeneric(testParameters, name);
+        readBackTyped(testParameters, name);
+        readBackTypedKeys(testParameters, name);
     }
 }

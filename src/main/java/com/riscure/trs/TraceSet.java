@@ -155,7 +155,7 @@ public class TraceSet implements AutoCloseable {
                 int size = traceParameterDefinitionMap.totalSize();
                 byte[] data = new byte[size];
                 buffer.get(data);
-                TraceParameterMap traceParameterMap = TraceParameterMap.deserialize(data, traceParameterDefinitionMap);
+                TraceParameterMap traceParameterMap = TraceParameterMap.deserialize(data, traceParameterDefinitionMap, metaData.getTraceSetParameters());
 
                 float[] samples = readSamples();
                 return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), traceParameterMap);

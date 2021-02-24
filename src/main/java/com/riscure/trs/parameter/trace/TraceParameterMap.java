@@ -1,8 +1,12 @@
 package com.riscure.trs.parameter.trace;
 
+import com.riscure.trs.parameter.primitive.Ref;
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
+import com.riscure.trs.parameter.primitive.RefArrayParameter;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 import com.riscure.trs.types.*;
 
 import java.io.*;
@@ -52,10 +56,11 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     /**
      * @param bytes a raw byte array representing the values defined by the definition map
      * @param definitions the type and length information describing the provided byte array
+     * @param traceSetParameters the full set of all trace set parameters
      * @return a new TraceParameterMap, created from the provided byte array based on the provided definitions
      * @throws RuntimeException if the provided byte array does not represent a valid parameter map
      */
-    public static TraceParameterMap deserialize(byte[] bytes, TraceParameterDefinitionMap definitions) {
+    public static TraceParameterMap deserialize(byte[] bytes, TraceParameterDefinitionMap definitions, TraceSetParameterMap traceSetParameters) {
         TraceParameterMap result = new TraceParameterMap();
         if (bytes != null && bytes.length > 0) {
             if (bytes.length != definitions.totalSize()) {
@@ -64,7 +69,13 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
             try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
                 DataInputStream dis = new DataInputStream(bais);
                 for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> entry : definitions.entrySet()) {
-                    TraceParameter traceParameter = TraceParameter.deserialize(entry.getValue().getType(), entry.getValue().getLength(), dis);
+                    TraceParameter traceParameter;
+                    if (entry.getValue().getType() == ParameterType.REF) {
+                        String[] options = traceSetParameters.get(new StringTypeKey(entry.getKey())).split(",");
+                        traceParameter = RefArrayParameter.deserialize(dis, options, entry.getValue().getLength());
+                    } else {
+                        traceParameter = TraceParameter.deserialize(entry.getValue().getType(), entry.getValue().getLength(), dis);
+                    }
                     result.put(entry.getKey(), traceParameter);
                 }
             } catch (IOException ex) {
@@ -175,6 +186,14 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
         put(new BooleanArrayTypeKey(key), value);
     }
 
+    public void put(String key, Ref value) {
+        put(new RefTypeKey(key), value);
+    }
+
+    public void put(String key, Ref[] value) {
+        put(new RefArrayTypeKey(key), value);
+    }
+
     public byte getByte(String key) {
         return get(new ByteTypeKey(key));
     }
@@ -233,6 +252,14 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
 
     public boolean[] getBooleanArray(String key) {
         return get(new BooleanArrayTypeKey(key));
+    }
+
+    public Ref getRef(String key) {
+        return get(new RefTypeKey(key));
+    }
+
+    public Ref[] getRefArray(String key) {
+        return get(new RefArrayTypeKey(key));
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.riscure.trs.parameter;
 
 import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.primitive.*;
+import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -49,6 +50,7 @@ public abstract class TraceParameter {
 
     /**
      * Read a new TraceParameter from the specified input stream
+     *
      * @param type the type of the parameter to read
      * @param length the number of values to read
      * @param dis the input stream to read from
@@ -74,7 +76,7 @@ public abstract class TraceParameter {
             case BOOL:
                 return BooleanArrayParameter.deserialize(dis, length);
             default:
-                throw new IllegalArgumentException("Unknown parameter type: " + type.name());
+                throw new IllegalArgumentException("Unknown parameter or invalid reference type : " + type.name());
         }
     }
 }

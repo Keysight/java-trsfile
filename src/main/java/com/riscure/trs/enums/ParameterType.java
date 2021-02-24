@@ -8,7 +8,8 @@ public enum ParameterType {
     LONG (0x08, Long.BYTES, Long.class, long[].class),
     DOUBLE (0x18, Double.BYTES, Double.class, double[].class),
     STRING (0x20, Byte.BYTES, String.class, String.class),
-    BOOL (0x31, Byte.BYTES, Boolean.class, boolean[].class);
+    BOOL (0x31, Byte.BYTES, Boolean.class, boolean[].class),
+    REF (0x40, Integer.BYTES, Integer.class, int[].class);
 
     private final byte value;
     private final int byteSize;
