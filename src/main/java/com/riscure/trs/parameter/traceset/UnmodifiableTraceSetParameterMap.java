@@ -9,8 +9,13 @@ import java.util.function.BiFunction;
  * This map is read from the file, and is therefore unmodifiable.
  */
 public class UnmodifiableTraceSetParameterMap extends TraceSetParameterMap {
-    private static final UnsupportedOperationException MODIFICATION_NOT_SUPPORTED_EXCEPTION =
-            new UnsupportedOperationException("This trace set is in read mode, and the parameters cannot be modified.");
+    private static final String UNABLE_TO_SET_PARAMETER =
+            "Unable to set parameter `%s` to `%s`: This trace set is in read mode and cannot be modified.";
+    private static final String REMOVAL_NOT_SUPPORTED_EXCEPTION =
+            "Unable to remove parameter `%s`: This trace set is in read mode and cannot be modified.";
+    private static final String MODIFICATION_NOT_SUPPORTED_EXCEPTION = "Unable to modify: This trace set is in read mode and cannot be modified.";
+
+    private static final String UNABLE_TO_ADD_ALL_OF_S_THIS_TRACE_SET_IS_IN_READ_MODE_AND_CANNOT_BE_MODIFIED = "Unable to add all of `%s` : This trace set is in read mode and cannot be modified.";
 
     private UnmodifiableTraceSetParameterMap(TraceSetParameterMap delegate) {
         super.putAll(delegate.copy());
@@ -22,22 +27,38 @@ public class UnmodifiableTraceSetParameterMap extends TraceSetParameterMap {
 
     @Override
     public TraceSetParameter put(String key, TraceSetParameter value) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(
+                String.format(UNABLE_TO_SET_PARAMETER,
+                        key,
+                        value.getValue()
+                )
+        );
     }
 
     @Override
     public TraceSetParameter remove(Object key) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(
+                String.format(REMOVAL_NOT_SUPPORTED_EXCEPTION,
+                        key
+                )
+        );
     }
 
     @Override
     public void putAll(Map<? extends String, ? extends TraceSetParameter> m) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(
+                String.format(
+                        UNABLE_TO_ADD_ALL_OF_S_THIS_TRACE_SET_IS_IN_READ_MODE_AND_CANNOT_BE_MODIFIED,
+                        m.toString()
+                )
+        );
     }
 
     @Override
     public void clear() {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(
+                MODIFICATION_NOT_SUPPORTED_EXCEPTION
+        );
     }
 
     @Override
@@ -57,31 +78,51 @@ public class UnmodifiableTraceSetParameterMap extends TraceSetParameterMap {
 
     @Override
     public void replaceAll(BiFunction<? super String, ? super TraceSetParameter, ? extends TraceSetParameter> function) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(MODIFICATION_NOT_SUPPORTED_EXCEPTION);
     }
 
     @Override
     public TraceSetParameter putIfAbsent(String key, TraceSetParameter value) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(
+                String.format(UNABLE_TO_SET_PARAMETER,
+                        key,
+                        value.toString()
+                )
+        );
     }
 
     @Override
     public boolean remove(Object key, Object value) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(
+                String.format(
+                        REMOVAL_NOT_SUPPORTED_EXCEPTION,
+                        key
+                )
+        );
     }
 
     @Override
     public boolean replace(String key, TraceSetParameter oldValue, TraceSetParameter newValue) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(
+                String.format(UNABLE_TO_SET_PARAMETER,
+                        key,
+                        newValue.toString()
+                )
+        );
     }
 
     @Override
     public TraceSetParameter replace(String key, TraceSetParameter value) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(
+                String.format(UNABLE_TO_SET_PARAMETER,
+                        key,
+                        value.toString()
+                )
+        );
     }
 
     @Override
     public TraceSetParameter merge(String key, TraceSetParameter value, BiFunction<? super TraceSetParameter, ? super TraceSetParameter, ? extends TraceSetParameter> remappingFunction) {
-        throw MODIFICATION_NOT_SUPPORTED_EXCEPTION;
+        throw new UnsupportedOperationException(MODIFICATION_NOT_SUPPORTED_EXCEPTION);
     }
 }
