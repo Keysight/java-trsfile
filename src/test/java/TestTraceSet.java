@@ -8,7 +8,6 @@ import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.ByteArrayParameter;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
-import com.riscure.trs.parameter.trace.UnmodifiableTraceParameterMap;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
@@ -529,21 +528,6 @@ public class TestTraceSet {
 
         assertThrows(ClassCastException.class, () -> tpm.containsKey(typedKey));
         assertThrows(ClassCastException.class, () -> tspm.containsKey(typedKey));
-    }
-
-    /**
-     * This test ensure that the underlying map of an unmodifiable map cannot change the map itself
-     */
-    @Test
-    public void testUnmodifiable() {
-        byte[] ba = {1, 2, 3, 4, 5};
-        ByteArrayParameter bap = new ByteArrayParameter(ba);
-        TraceParameterMap tpm = new TraceParameterMap();
-        tpm.put("BA", bap);
-        TraceParameterMap copy = UnmodifiableTraceParameterMap.of(tpm);
-        ba[1] = 6;
-        byte[] baCopy = (byte[]) copy.get("BA").getValue();
-        assertFalse("Arrays should not be equal, but they are", Arrays.equals(baCopy, ba));
     }
 
     /**

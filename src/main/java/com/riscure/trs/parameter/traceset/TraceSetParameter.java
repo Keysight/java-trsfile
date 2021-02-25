@@ -11,6 +11,11 @@ import java.util.Objects;
 public class TraceSetParameter {
     private final TraceParameter value;
 
+    @Override
+    public String toString() {
+        return this.value.toString();
+    }
+
     public TraceSetParameter(TraceParameter instance) {
         this.value = instance;
     }
