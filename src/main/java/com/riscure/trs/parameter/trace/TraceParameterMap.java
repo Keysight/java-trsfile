@@ -108,7 +108,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     public <T> Optional<T> get(TypedKey<T> typedKey) {
         TraceParameter parameter = get(typedKey.getKey());
         if (parameter != null) {
-            if (parameter.length() == 1) {
+            if (parameter.length() == 1 && !typedKey.getCls().isArray()) {
                 return Optional.of(typedKey.cast(parameter.getScalarValue()));
             } else {
                 return Optional.of(typedKey.cast(parameter.getValue()));

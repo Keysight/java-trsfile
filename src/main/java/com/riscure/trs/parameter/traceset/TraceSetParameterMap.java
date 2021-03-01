@@ -115,7 +115,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
     public <T> Optional<T> get(TypedKey<T> typedKey) {
         TraceSetParameter parameter = get(typedKey.getKey());
         if (parameter != null) {
-            if (parameter.getValue().length() == 1) {
+            if (parameter.getValue().length() == 1 && !typedKey.getCls().isArray()) {
                 return Optional.of(typedKey.cast(parameter.getValue().getScalarValue()));
             } else {
                 return Optional.of(typedKey.cast(parameter.getValue().getValue()));
