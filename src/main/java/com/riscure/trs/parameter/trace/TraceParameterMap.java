@@ -83,7 +83,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
      */
     public <T> boolean containsKey(TypedKey<T> key) {
         boolean containsKey = super.containsKey(key.getKey());
-        if (containsKey) return get(key).getClass().equals(key.getCls());
+        if (containsKey) return get(key).get().getClass().equals(key.getCls());
         return false;
     }
 
@@ -105,14 +105,40 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
      * @return the value of the requested parameter
      * @throws ClassCastException if the requested value is not of the expected type
      */
-    public <T> T get(TypedKey<T> typedKey) {
-        TraceParameter traceParameter = Optional.ofNullable(get(typedKey.getKey()))
-                .orElseThrow(() -> new NoSuchElementException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
-        if (traceParameter.length() == 1) {
-            return typedKey.cast(traceParameter.getScalarValue());
-        } else {
-            return typedKey.cast(traceParameter.getValue());
+    public <T> Optional<T> get(TypedKey<T> typedKey) {
+        TraceParameter parameter = get(typedKey.getKey());
+        if (parameter != null) {
+            if (parameter.length() == 1) {
+                return Optional.of(typedKey.cast(parameter.getScalarValue()));
+            } else {
+                return Optional.of(typedKey.cast(parameter.getValue()));
+            }
         }
+        return Optional.empty();
+    }
+
+    /**
+     * Get a parameter from the map
+     * @param typedKey the {@link TypedKey} defining the name and the type of the value to retrieve
+     * @param <T> the type of the parameter
+     * @return the value of the requested parameter
+     * @throws ClassCastException if the requested value is not of the expected type
+     * @throws NoSuchElementException if the requested value does not exist in the map
+     */
+    public <T> T getOrElseThrow(TypedKey<T> typedKey) {
+        return get(typedKey).orElseThrow(() -> new NoSuchElementException(String.format(KEY_NOT_FOUND, typedKey.getKey())));
+    }
+
+    /**
+     * Get a parameter from the map
+     * @param typedKey the {@link TypedKey} defining the name and the type of the value to retrieve
+     * @param <T> the type of the parameter
+     * @param defaultValue the value to use if the value is not present in the map
+     * @return the value of the requested parameter
+     * @throws ClassCastException if the requested value is not of the expected type
+     */
+    public <T> T getOrDefault(TypedKey<T> typedKey, T defaultValue) {
+        return get(typedKey).orElse(defaultValue);
     }
 
     public void put(String key, byte value) {
@@ -176,63 +202,63 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     }
 
     public byte getByte(String key) {
-        return get(new ByteTypeKey(key));
+        return getOrElseThrow(new ByteTypeKey(key));
     }
 
     public byte[] getByteArray(String key) {
-        return get(new ByteArrayTypeKey(key));
+        return getOrElseThrow(new ByteArrayTypeKey(key));
     }
 
     public short getShort(String key) {
-        return get(new ShortTypeKey(key));
+        return getOrElseThrow(new ShortTypeKey(key));
     }
 
     public short[] getShortArray(String key) {
-        return get(new ShortArrayTypeKey(key));
+        return getOrElseThrow(new ShortArrayTypeKey(key));
     }
 
     public int getInt(String key) {
-        return get(new IntegerTypeKey(key));
+        return getOrElseThrow(new IntegerTypeKey(key));
     }
 
     public int[] getIntArray(String key) {
-        return get(new IntegerArrayTypeKey(key));
+        return getOrElseThrow(new IntegerArrayTypeKey(key));
     }
 
     public float getFloat(String key) {
-        return get(new FloatTypeKey(key));
+        return getOrElseThrow(new FloatTypeKey(key));
     }
 
     public float[] getFloatArray(String key) {
-        return get(new FloatArrayTypeKey(key));
+        return getOrElseThrow(new FloatArrayTypeKey(key));
     }
 
     public long getLong(String key) {
-        return get(new LongTypeKey(key));
+        return getOrElseThrow(new LongTypeKey(key));
     }
 
     public long[] getLongArray(String key) {
-        return get(new LongArrayTypeKey(key));
+        return getOrElseThrow(new LongArrayTypeKey(key));
     }
 
     public double getDouble(String key) {
-        return get(new DoubleTypeKey(key));
+        return getOrElseThrow(new DoubleTypeKey(key));
     }
 
     public double[] getDoubleArray(String key) {
-        return get(new DoubleArrayTypeKey(key));
+        return getOrElseThrow(new DoubleArrayTypeKey(key));
     }
 
     public String getString(String key) {
-        return get(new StringTypeKey(key));
+        return getOrElseThrow(new StringTypeKey(key));
     }
 
     public boolean getBoolean(String key) {
-        return get(new BooleanTypeKey(key));
+        return getOrElseThrow(new BooleanTypeKey(key));
     }
 
     public boolean[] getBooleanArray(String key) {
-        return get(new BooleanArrayTypeKey(key));
+        return getOrElseThrow(new BooleanArrayTypeKey(key));
     }
 
     @Override

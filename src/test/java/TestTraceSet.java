@@ -200,9 +200,7 @@ public class TestTraceSet {
         //READ BACK AND CHECK RESULT
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
             TraceSetParameterMap readTraceSetParameterMap = readable.getMetaData().getTraceSetParameters();
-            parameters.forEach((s, traceSetParameter) -> {
-                assertEquals(traceSetParameter, readTraceSetParameterMap.get(s));
-            });
+            parameters.forEach((s, traceSetParameter) -> assertEquals(traceSetParameter, readTraceSetParameterMap.get(s)));
         }
     }
 
@@ -425,7 +423,7 @@ public class TestTraceSet {
                             throw new RuntimeException("Unexpected type: " + parameter.getType());
                     }
                     if (parameter.getLength() > 1 && typedKey.getCls().isArray()) {
-                        assertArrayEquals(Arrays.asList(correctValue.get(typedKey)).toArray(), Arrays.asList(trace.getParameters().get(typedKey)).toArray());
+                        assertArrayEquals(Arrays.asList(correctValue.get(typedKey).get()).toArray(), Arrays.asList(trace.getParameters().get(typedKey).get()).toArray());
                     } else {
                         assertEquals(correctValue.get(typedKey), trace.getParameters().get(typedKey));
                     }
