@@ -200,9 +200,7 @@ public class TestTraceSet {
         //READ BACK AND CHECK RESULT
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
             TraceSetParameterMap readTraceSetParameterMap = readable.getMetaData().getTraceSetParameters();
-            parameters.forEach((s, traceSetParameter) -> {
-                assertEquals(traceSetParameter, readTraceSetParameterMap.get(s));
-            });
+            parameters.forEach((s, traceSetParameter) -> assertEquals(traceSetParameter, readTraceSetParameterMap.get(s)));
         }
     }
 
@@ -425,7 +423,8 @@ public class TestTraceSet {
                             throw new RuntimeException("Unexpected type: " + parameter.getType());
                     }
                     if (parameter.getLength() > 1 && typedKey.getCls().isArray()) {
-                        assertArrayEquals(Arrays.asList(correctValue.get(typedKey)).toArray(), Arrays.asList(trace.getParameters().get(typedKey)).toArray());
+                        assertArrayEquals(Arrays.asList(correctValue.getOrElseThrow(typedKey)).toArray(),
+                                Arrays.asList(trace.getParameters().getOrElseThrow(typedKey)).toArray());
                     } else {
                         assertEquals(correctValue.get(typedKey), trace.getParameters().get(typedKey));
                     }
@@ -453,6 +452,26 @@ public class TestTraceSet {
         //READ BACK AND CHECK RESULT
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
             assertThrows(ClassCastException.class, () -> readable.get(0).getParameters().getDouble("BYTE"));
+        }
+    }
+
+    /**
+     * This
+     * @throws IOException
+     * @throws TRSFormatException
+     */
+    @Test
+    public void testContainsNonArray() throws IOException, TRSFormatException {
+        ByteTypeKey byteKey = new ByteTypeKey("BYTE");
+        String name = UUID.randomUUID().toString() + TRS;
+        try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+            TraceParameterMap parameters = new TraceParameterMap();
+            parameters.put(byteKey, (byte) 1);
+            traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
+        }
+        //READ BACK AND CHECK RESULT
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+            assertTrue(readable.get(0).getParameters().contains(byteKey));
         }
     }
 
@@ -488,7 +507,7 @@ public class TestTraceSet {
             }
         }
     }
-    
+
     /**
      * This test checks whether an empty array is serialized and deserialized correctly
      * Expected: an exception is thrown when adding an empty parameter
@@ -510,8 +529,29 @@ public class TestTraceSet {
         tpm.put(typedKey, (byte)1);
         tspm.put(typedKey, (byte)2);
 
-        assertTrue(tpm.containsKey(typedKey));
-        assertTrue(tspm.containsKey(typedKey));
+        assertTrue(tpm.contains(typedKey));
+        assertTrue(tspm.contains(typedKey));
+    }
+
+    /**
+     * This test checks whether you can get an array type of a simple value
+     */
+    @Test
+    public void testGetArrayOfLengthOne() {
+        TraceParameterMap tpm = new TraceParameterMap();
+        TraceSetParameterMap tspm = new TraceSetParameterMap();
+
+        byte rawValue = 1;
+        String rawKey = "BYTE";
+        ByteTypeKey typedKey = new ByteTypeKey(rawKey);
+        tpm.put(typedKey, rawValue);
+        tspm.put(typedKey, rawValue);
+
+        ByteArrayTypeKey arrayTypeKey = new ByteArrayTypeKey(rawKey);
+        assertTrue(tpm.contains(arrayTypeKey));
+        assertTrue(tspm.contains(arrayTypeKey));
+        assertArrayEquals(new byte[]{rawValue}, tpm.getByteArray(rawKey));
+        assertArrayEquals(new byte[]{rawValue}, tspm.getByteArray(rawKey));
     }
 
     /**
@@ -523,11 +563,13 @@ public class TestTraceSet {
         TraceSetParameterMap tspm = new TraceSetParameterMap();
         String rawKey = "BYTE";
         ByteTypeKey typedKey = new ByteTypeKey(rawKey);
-        tpm.put(rawKey, 1);     //actually an int
+        tpm.put(rawKey, new byte[]{1, 2});     //actually a byte array
         tspm.put(rawKey, 2);     //actually an int
 
-        assertThrows(ClassCastException.class, () -> tpm.containsKey(typedKey));
-        assertThrows(ClassCastException.class, () -> tspm.containsKey(typedKey));
+        assertFalse(tpm.contains(typedKey));
+        assertFalse(tspm.contains(typedKey));
+        assertThrows(ClassCastException.class, () -> tpm.get(typedKey));
+        assertThrows(ClassCastException.class, () -> tspm.get(typedKey));
     }
 
     /**

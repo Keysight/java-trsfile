@@ -1,5 +1,6 @@
 package com.riscure.trs.types;
 
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 
 import java.lang.reflect.Array;
@@ -32,6 +33,10 @@ public abstract class TypedKey<T> {
     }
 
     public abstract TraceParameter createParameter(T value);
+
+    public ParameterType getType() {
+        return ParameterType.fromClass(cls);
+    }
 
     protected void checkLength(T value) {
         if (getCls().isArray() && Array.getLength(value) <= 0) {
