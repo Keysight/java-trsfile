@@ -486,7 +486,7 @@ public class TestTraceSet {
             }
         }
     }
-    
+
     /**
      * This test checks whether an empty array is serialized and deserialized correctly
      * Expected: an exception is thrown when adding an empty parameter
@@ -510,6 +510,27 @@ public class TestTraceSet {
 
         assertTrue(tpm.containsKey(typedKey));
         assertTrue(tspm.containsKey(typedKey));
+    }
+
+    /**
+     * This test checks whether you can get an array type of a simple value
+     */
+    @Test
+    public void testGetArrayOfLengthOne() {
+        TraceParameterMap tpm = new TraceParameterMap();
+        TraceSetParameterMap tspm = new TraceSetParameterMap();
+
+        byte rawValue = 1;
+        String rawKey = "BYTE";
+        ByteTypeKey typedKey = new ByteTypeKey(rawKey);
+        tpm.put(typedKey, rawValue);
+        tspm.put(typedKey, rawValue);
+
+        ByteArrayTypeKey arrayTypeKey = new ByteArrayTypeKey(rawKey);
+        assertTrue(tpm.containsKey(arrayTypeKey));
+        assertTrue(tspm.containsKey(arrayTypeKey));
+        assertArrayEquals(new byte[]{rawValue}, tpm.getByteArray(rawKey));
+        assertArrayEquals(new byte[]{rawValue}, tspm.getByteArray(rawKey));
     }
 
     /**
