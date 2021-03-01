@@ -88,9 +88,9 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
      * @param <T> the type of the parameter
      * @return whether the key is present in the map AND the parameter type matches the requested key's type
      */
-    public <T> boolean containsKey(TypedKey<T> key) {
+    public <T> boolean contains(TypedKey<T> key) {
         boolean containsKey = super.containsKey(key.getKey());
-        if (containsKey) return get(key).get().getClass().equals(key.getCls());
+        if (containsKey) return getOrElseThrow(key).getClass().equals(key.getCls());
         return false;
     }
 

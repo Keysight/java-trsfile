@@ -423,7 +423,8 @@ public class TestTraceSet {
                             throw new RuntimeException("Unexpected type: " + parameter.getType());
                     }
                     if (parameter.getLength() > 1 && typedKey.getCls().isArray()) {
-                        assertArrayEquals(Arrays.asList(correctValue.get(typedKey).get()).toArray(), Arrays.asList(trace.getParameters().get(typedKey).get()).toArray());
+                        assertArrayEquals(Arrays.asList(correctValue.getOrElseThrow(typedKey)).toArray(),
+                                Arrays.asList(trace.getParameters().getOrElseThrow(typedKey)).toArray());
                     } else {
                         assertEquals(correctValue.get(typedKey), trace.getParameters().get(typedKey));
                     }
@@ -508,8 +509,8 @@ public class TestTraceSet {
         tpm.put(typedKey, (byte)1);
         tspm.put(typedKey, (byte)2);
 
-        assertTrue(tpm.containsKey(typedKey));
-        assertTrue(tspm.containsKey(typedKey));
+        assertTrue(tpm.contains(typedKey));
+        assertTrue(tspm.contains(typedKey));
     }
 
     /**
@@ -527,8 +528,8 @@ public class TestTraceSet {
         tspm.put(typedKey, rawValue);
 
         ByteArrayTypeKey arrayTypeKey = new ByteArrayTypeKey(rawKey);
-        assertTrue(tpm.containsKey(arrayTypeKey));
-        assertTrue(tspm.containsKey(arrayTypeKey));
+        assertTrue(tpm.contains(arrayTypeKey));
+        assertTrue(tspm.contains(arrayTypeKey));
         assertArrayEquals(new byte[]{rawValue}, tpm.getByteArray(rawKey));
         assertArrayEquals(new byte[]{rawValue}, tspm.getByteArray(rawKey));
     }
@@ -545,8 +546,8 @@ public class TestTraceSet {
         tpm.put(rawKey, 1);     //actually an int
         tspm.put(rawKey, 2);     //actually an int
 
-        assertThrows(ClassCastException.class, () -> tpm.containsKey(typedKey));
-        assertThrows(ClassCastException.class, () -> tspm.containsKey(typedKey));
+        assertThrows(ClassCastException.class, () -> tpm.contains(typedKey));
+        assertThrows(ClassCastException.class, () -> tspm.contains(typedKey));
     }
 
     /**
