@@ -1,5 +1,6 @@
 package com.riscure.trs.parameter.trace;
 
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
@@ -77,14 +78,16 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     }
 
     /**
-     * @param key the typed key to check for
+     * @param typedKey the typed key to check for
      * @param <T> the type of the parameter
-     * @return whether the key is present in the map AND the parameter type matches the requested key's type
+     * @return whether the key is present in the map AND the requested key matches the stored parameter's type and length
      */
-    public <T> boolean contains(TypedKey<T> key) {
-        boolean containsKey = super.containsKey(key.getKey());
-        if (containsKey) return getOrElseThrow(key).getClass().equals(key.getCls());
-        return false;
+    public <T> boolean contains(TypedKey<T> typedKey) {
+        if (!super.containsKey(typedKey.getKey())) return false;
+        TraceParameter traceParameter = get(typedKey.getKey());
+        boolean isSameType = traceParameter.getType().equals(typedKey.getType());
+        boolean isValidLength = typedKey.getCls().isArray() || traceParameter.length() == 1;
+        return isSameType && isValidLength;
     }
 
     /**

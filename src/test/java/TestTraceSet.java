@@ -456,6 +456,26 @@ public class TestTraceSet {
     }
 
     /**
+     * This
+     * @throws IOException
+     * @throws TRSFormatException
+     */
+    @Test
+    public void testContainsNonArray() throws IOException, TRSFormatException {
+        ByteTypeKey byteKey = new ByteTypeKey("BYTE");
+        String name = UUID.randomUUID().toString() + TRS;
+        try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+            TraceParameterMap parameters = new TraceParameterMap();
+            parameters.put(byteKey, (byte) 1);
+            traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
+        }
+        //READ BACK AND CHECK RESULT
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+            assertTrue(readable.get(0).getParameters().contains(byteKey));
+        }
+    }
+
+    /**
      * This test checks whether all deserialize methods throw an exception if the inputstream does not contain enough data
      * Introduced to test #11: TraceParameter.deserialize does not check the actual returned length
      */
@@ -543,11 +563,13 @@ public class TestTraceSet {
         TraceSetParameterMap tspm = new TraceSetParameterMap();
         String rawKey = "BYTE";
         ByteTypeKey typedKey = new ByteTypeKey(rawKey);
-        tpm.put(rawKey, 1);     //actually an int
+        tpm.put(rawKey, new byte[]{1, 2});     //actually a byte array
         tspm.put(rawKey, 2);     //actually an int
 
-        assertThrows(ClassCastException.class, () -> tpm.contains(typedKey));
-        assertThrows(ClassCastException.class, () -> tspm.contains(typedKey));
+        assertFalse(tpm.contains(typedKey));
+        assertFalse(tspm.contains(typedKey));
+        assertThrows(ClassCastException.class, () -> tpm.get(typedKey));
+        assertThrows(ClassCastException.class, () -> tspm.get(typedKey));
     }
 
     /**
