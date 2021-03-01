@@ -1,4 +1,5 @@
 *.iml
+*.ps1
 .idea/
 out/
 target/
