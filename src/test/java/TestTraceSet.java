@@ -471,7 +471,7 @@ public class TestTraceSet {
         }
         //READ BACK AND CHECK RESULT
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
-            assertTrue(readable.get(0).getParameters().contains(byteKey));
+            assertTrue(readable.get(0).getParameters().get(byteKey).isPresent());
         }
     }
 
@@ -529,8 +529,8 @@ public class TestTraceSet {
         tpm.put(typedKey, (byte)1);
         tspm.put(typedKey, (byte)2);
 
-        assertTrue(tpm.contains(typedKey));
-        assertTrue(tspm.contains(typedKey));
+        assertTrue(tpm.get(typedKey).isPresent());
+        assertTrue(tspm.get(typedKey).isPresent());
     }
 
     /**
@@ -548,8 +548,8 @@ public class TestTraceSet {
         tspm.put(typedKey, rawValue);
 
         ByteArrayTypeKey arrayTypeKey = new ByteArrayTypeKey(rawKey);
-        assertTrue(tpm.contains(arrayTypeKey));
-        assertTrue(tspm.contains(arrayTypeKey));
+        assertTrue(tpm.get(arrayTypeKey).isPresent());
+        assertTrue(tspm.get(arrayTypeKey).isPresent());
         assertArrayEquals(new byte[]{rawValue}, tpm.getByteArray(rawKey));
         assertArrayEquals(new byte[]{rawValue}, tspm.getByteArray(rawKey));
     }
@@ -566,8 +566,6 @@ public class TestTraceSet {
         tpm.put(rawKey, new byte[]{1, 2});     //actually a byte array
         tspm.put(rawKey, 2);     //actually an int
 
-        assertFalse(tpm.contains(typedKey));
-        assertFalse(tspm.contains(typedKey));
         assertThrows(ClassCastException.class, () -> tpm.get(typedKey));
         assertThrows(ClassCastException.class, () -> tspm.get(typedKey));
     }
