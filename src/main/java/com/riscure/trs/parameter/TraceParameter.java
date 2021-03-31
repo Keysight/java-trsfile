@@ -62,7 +62,7 @@ public abstract class TraceParameter {
             case SHORT:
                 return ShortArrayParameter.deserialize(dis, length);
             case INT:
-                return IntArrayParameter.deserialize(dis, length);
+                return IntegerArrayParameter.deserialize(dis, length);
             case FLOAT:
                 return FloatArrayParameter.deserialize(dis, length);
             case LONG:
