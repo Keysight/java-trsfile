@@ -34,7 +34,6 @@ public class TraceSet implements AutoCloseable {
     private static final String TRACE_SET_IN_READ_MODE = "TraceSet is in read mode. Please open the TraceSet in write mode.";
     private static final String TRACE_LENGTH_DIFFERS = "All traces in a set need to be the same length, but current trace length (%d) differs from the previous trace(s) (%d)";
     private static final String TRACE_DATA_LENGTH_DIFFERS = "All traces in a set need to have the same data length, but current trace data length (%d) differs from the previous trace(s) (%d)";
-    private static final String TRACE_SAMPLING_FREQUENCY_DIFFERS = "All traces in a set need to have the same sampling frequency, but current trace data (%.05f) differs from the previous trace(s) (%.05f)";
     private static final String UNKNOWN_SAMPLE_CODING = "Error reading TRS file: unknown sample coding '%d'";
     private static final long MAX_BUFFER_SIZE = Integer.MAX_VALUE;
     private static final String PARAMETER_NOT_DEFINED = "Parameter %s is saved in the trace, but was not found in the header definition";
@@ -112,7 +111,7 @@ public class TraceSet implements AutoCloseable {
 
     private long calculateTraceSize() {
         int sampleSize = Encoding.fromValue(metaData.getInt(SAMPLE_CODING)).getSize();
-        long sampleSpace = metaData.getInt(NUMBER_OF_SAMPLES) * sampleSize;
+        long sampleSpace = metaData.getInt(NUMBER_OF_SAMPLES) * (long) sampleSize;
         return sampleSpace + metaData.getInt(DATA_LENGTH) + metaData.getInt(TITLE_SPACE);
     }
 
@@ -149,29 +148,25 @@ public class TraceSet implements AutoCloseable {
             traceTitle = String.format("%s %d", metaData.getString(GLOBAL_TITLE), index);
         }
 
-        if (metaData.getInt(TRS_VERSION) > 1) {
-            TraceParameterDefinitionMap traceParameterDefinitionMap = metaData.getTraceParameterDefinitions();
-            try {
+        try {
+            TraceParameterMap traceParameterMap;
+            if (metaData.getInt(TRS_VERSION) > 1) {
+                TraceParameterDefinitionMap traceParameterDefinitionMap = metaData.getTraceParameterDefinitions();
                 int size = traceParameterDefinitionMap.totalSize();
                 byte[] data = new byte[size];
                 buffer.get(data);
-                TraceParameterMap traceParameterMap = TraceParameterMap.deserialize(data, traceParameterDefinitionMap);
-
-                float[] samples = readSamples();
-                return new Trace(traceTitle, samples, 1f/metaData.getFloat(SCALE_X), traceParameterMap);
-            } catch (TRSFormatException ex) {
-                throw new IOException(ex);
+                traceParameterMap = TraceParameterMap.deserialize(data, traceParameterDefinitionMap);
+            } else {
+                //legacy mode
+                byte[] data = readData();
+                traceParameterMap = new TraceParameterMap();
+                traceParameterMap.put("LEGACY_DATA", data);
             }
-        } else {
-            //legacy mode
-            byte[] data = readData();
 
-            try {
-                float[] samples = readSamples();
-                return new Trace(traceTitle, data, samples, 1f/metaData.getFloat(SCALE_X));
-            } catch (TRSFormatException ex) {
-                throw new IOException(ex);
-            }
+            float[] samples = readSamples();
+            return new Trace(traceTitle, samples, traceParameterMap);
+        } catch (TRSFormatException ex) {
+            throw new IOException(ex);
         }
     }
 
@@ -190,7 +185,6 @@ public class TraceSet implements AutoCloseable {
             metaData.put(NUMBER_OF_SAMPLES, trace.getNumberOfSamples(), false);
             metaData.put(DATA_LENGTH, dataLength, false);
             metaData.put(TITLE_SPACE, titleLength, false);
-            metaData.put(SCALE_X, 1f/trace.getSampleFrequency(), false);
             metaData.put(SAMPLE_CODING, trace.getPreferredCoding(), false);
             metaData.put(TRACE_PARAMETER_DEFINITIONS, TraceParameterDefinitionMap.createFrom(trace.getParameters()));
             TRSMetaDataUtils.writeTRSMetaData(writeStream, metaData);
@@ -199,6 +193,7 @@ public class TraceSet implements AutoCloseable {
         truncateStrings(trace, metaData);
         checkValid(trace);
 
+        trace.setTraceSet(this);
         writeTrace(trace);
 
         int numberOfTraces = metaData.getInt(NUMBER_OF_TRACES);
@@ -210,14 +205,13 @@ public class TraceSet implements AutoCloseable {
      * @param trace the trace to update
      * @param metaData the metadata specifying the maximum string lengths
      */
-    private void truncateStrings(Trace trace, TRSMetaData metaData) throws IOException {
+    private void truncateStrings(Trace trace, TRSMetaData metaData) {
         int titleSpace = metaData.getInt(TITLE_SPACE);
         String title = trace.getTitle();
         if (title != null && titleSpace < title.getBytes(StandardCharsets.UTF_8).length) {
             trace.setTitle(fitUtf8StringToByteLength(title, titleSpace));
         }
         TraceParameterDefinitionMap traceParameterDefinitionMap = metaData.getTraceParameterDefinitions();
-        boolean needsUpdate = false;
         for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> definition : traceParameterDefinitionMap.entrySet()) {
             TraceParameterDefinition<TraceParameter> value = definition.getValue();
             String key = definition.getKey();
@@ -226,13 +220,8 @@ public class TraceSet implements AutoCloseable {
                 String stringValue = ((StringParameter) trace.getParameters().get(key)).getValue();
                 if (stringLength != stringValue.getBytes(StandardCharsets.UTF_8).length) {
                     trace.getParameters().put(key, fitUtf8StringToByteLength(stringValue, stringLength));
-                    needsUpdate = true;
                 }
             }
-        }
-        if (needsUpdate) {
-            //overwrite the legacy data array with the truncated versions of the strings
-            trace.setData(trace.getParameters().toByteArray());
         }
     }
 
@@ -340,13 +329,6 @@ public class TraceSet implements AutoCloseable {
             throw new IllegalArgumentException(String.format(TRACE_DATA_LENGTH_DIFFERS,
                     traceDataLength,
                     dataLength));
-        }
-
-        float sampleFrequency = 1f/metaData.getFloat(SCALE_X);
-        if (sampleFrequency != trace.getSampleFrequency()) {
-            throw new IllegalArgumentException(String.format(TRACE_SAMPLING_FREQUENCY_DIFFERS,
-                    trace.getSampleFrequency(),
-                    sampleFrequency));
         }
 
         for (Map.Entry<String, TraceParameter> entry : trace.getParameters().entrySet()) {
