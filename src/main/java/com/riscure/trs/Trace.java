@@ -3,7 +3,6 @@ package com.riscure.trs;
 import com.riscure.trs.enums.Encoding;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.FloatBuffer;
 
@@ -23,56 +22,13 @@ public class Trace {
 
     /**
      * Factory method. This will copy the provided arrays for stability.
-     * @deprecated As of TraceSet V2, it is no longer recommended to create traces
-     * with raw data. Please use {@link #create(String, float[], TraceParameterMap)} instead.
-     * @param title the trace title
-     * @param data the communication data array
-     * @param sample the sample array
-     * @return a new trace object holding the provided samples
-     */
-    @Deprecated
-    public static Trace create(String title, byte[] data, float[] sample) {
-        return new Trace(title, data.clone(), sample.clone());
-    }
-
-    /**
-     * Factory method. This will copy the provided arrays for stability.
      * @param title the trace title
      * @param sample the sample array
      * @param parameters the parameters to be saved with every trace
-     * @throws IOException if there is a problem creating or writing to the trace set file
      * @return a new trace object holding the provided information
      */
-    public static Trace create(String title, float[] sample, TraceParameterMap parameters) throws IOException {
+    public static Trace create(String title, float[] sample, TraceParameterMap parameters) {
         return new Trace(title, sample.clone(), parameters);
-    }
-
-    /**
-     * Factory method. This will copy the provided arrays for stability.
-     * @deprecated As of TraceSet V2, it is no longer recommended to create traces
-     * with raw data. Please use {@link #create(String, float[], TraceParameterMap)} instead.
-     * @param title the trace title
-     * @param data the communication data array
-     * @param sample the sample array
-     * @param sampleFrequency the associated sample frequency
-     * @return a new trace object holding the provided samples
-     */
-    @Deprecated
-    public static Trace create(String title, byte[] data, float[] sample, float sampleFrequency) {
-        return new Trace(title, data.clone(), sample.clone(), sampleFrequency);
-    }
-
-    /**
-     * Factory method. This will copy the provided arrays for stability.
-     * @param title the trace title
-     * @param sample the sample array
-     * @param sampleFrequency the associated sample frequency
-     * @param parameters the parameters to be saved with every trace
-     * @throws IOException if there is a problem creating or writing to the trace set file
-     * @return a new trace object holding the provided information
-     */
-    public static Trace create(String title, float[] sample, float sampleFrequency, TraceParameterMap parameters) throws IOException {
-        return new Trace(title, sample.clone(), sampleFrequency, parameters);
     }
 
     /**
@@ -88,75 +44,16 @@ public class Trace {
     /**
      * Creates a new instance of Trace containing title, (crypto) data and sample array
      * Do not modify the sample array, it may be used in the core!
-     * @deprecated As of TraceSet V2, it is no longer recommended to create traces
-     * with raw data. Please use {@link #Trace(String, float[], TraceParameterMap)} instead.
-     * 
-     * @param title
-     *            Local title for this trace
-     * @param data
-     *            Supplementary (crypto) data
-     * @param sample
-     *            Sample values. Do not modify
-     */
-    @Deprecated
-    public Trace(String title, byte[] data, float[] sample) {
-        this.title = title;
-        this.data = data;
-        this.sample = FloatBuffer.wrap(sample);
-    }
-
-    /**
-     * Creates a new instance of Trace containing title, (crypto) data and sample array
-     * Do not modify the sample array, it may be used in the core!
      *
      * @param title Local title for this trace
      * @param sample Sample values. Do not modify
      * @param parameters the parameters to be saved with every trace. For backwards compatibility,
      *                   these values are also stored as a raw byte array
-     * @throws IOException if there is a problem creating or writing to the trace set file
      */
-    public Trace(String title, float[] sample, TraceParameterMap parameters) throws IOException {
+    public Trace(String title, float[] sample, TraceParameterMap parameters) {
         this.title = title;
         this.sample = FloatBuffer.wrap(sample);
-        this.data = parameters.toByteArray();
         this.parameters = parameters;
-    }
-
-    /**
-     * Creates a new instance of Trace containing title, (crypto) data and sample array
-     * Do not modify the sample array, it may be used in the core!
-     * @deprecated As of TraceSet V2, it is no longer recommended to create traces
-     * with raw data. Please use {@link #Trace(String, float[], float, TraceParameterMap)} instead.
-     *
-     * @param title
-     *            Local title for this trace
-     * @param data
-     *            Supplementary (crypto) data
-     * @param sample
-     *            Sample values. Do not modify
-     * @param sampleFrequency
-     *            Sampling frequency at which the samples were acquired.
-     */
-    @Deprecated
-    public Trace(String title, byte[] data, float[] sample, float sampleFrequency) {
-        this(title, data, sample);
-        this.sampleFrequency = sampleFrequency;
-    }
-
-    /**
-     * Creates a new instance of Trace containing title, (crypto) data and sample array
-     * Do not modify the sample array, it may be used in the core!
-     *
-     * @param title Local title for this trace
-     * @param sample Sample values. Do not modify
-     * @param sampleFrequency Sampling frequency at which the samples were acquired.
-     * @param parameters the parameters to be saved with every trace. For backwards compatibility,
-     *                   these values are also stored as a raw byte array
-     * @throws IOException if there is a problem creating or writing to the trace set file
-     */
-    public Trace(String title, float[] sample, float sampleFrequency, TraceParameterMap parameters) throws IOException {
-        this(title, sample, parameters);
-        this.sampleFrequency = sampleFrequency;
     }
 
     /**
@@ -230,39 +127,12 @@ public class Trace {
     }
 
     /**
-     * Get the trace sample frequency
-     * 
-     * @return The sample frequency
-     */
-    public float getSampleFrequency() {
-        return sampleFrequency;
-    }
-
-    /**
-     * Set the sample frequency for this trace.
-     * 
-     * @param sampleFrequency the sample frequency
-     */
-    public void setSampleFrequency(float sampleFrequency) {
-        this.sampleFrequency = sampleFrequency;
-    }
-
-    /**
      * Get the supplementary (crypto) data of this trace.
      *
      * @return the supplementary data of this trace
      */
     public byte[] getData() {
-        return data;
-    }
-
-    /**
-     * Set the supplementary (crypto) data for this trace.
-     * 
-     * @param data the new (crypto) data
-     */
-    public void setData(byte[] data) {
-        this.data = data;
+        return parameters.toByteArray();
     }
 
     /**
@@ -280,7 +150,7 @@ public class Trace {
      * @return the supplementary (crypto) data of this trace as a hexadecimal string
      */
     public String getDataString() {
-        return new BigInteger(data).toString(16);
+        return new BigInteger(getData()).toString(16);
     }
 
     /**
@@ -310,20 +180,30 @@ public class Trace {
         return sample.limit();
     }
 
+    /**
+     * @return the trace set containing this trace, or null if not set
+     */
+    public TraceSet getTraceSet() {
+        return traceSet;
+    }
+
+    /**
+     * @param traceSet the trace set containing this trace
+     */
+    public void setTraceSet(TraceSet traceSet) {
+        this.traceSet = traceSet;
+    }
+
     /** A map of all custom named trace parameters */
     private TraceParameterMap parameters = new TraceParameterMap();
     /** list of samples */
-    private FloatBuffer sample;
+    private final FloatBuffer sample;
     /** trace title */
-    public String title = null;
-    /** trace (crypto) data */
-    public byte[] data = null;
+    private String title = null;
     /** number of samples shifted */
-    public int shifted = 0;
+    private int shifted = 0;
     /** trace set including this trace */
-    public TraceSet ts = null;
-    /** sample frequency of this trace */
-    public float sampleFrequency = 1;
+    private TraceSet traceSet = null;
     /** Indicates whether the aggregates ({@link Trace#hasIllegalValues}, {@link Trace#isReal} {@link Trace#max}, {@link Trace#min}) are valid. */
     private boolean aggregatesValid = false;
     /** whether the trace contains illegal float values */
