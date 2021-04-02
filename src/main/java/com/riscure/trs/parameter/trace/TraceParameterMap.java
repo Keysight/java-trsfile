@@ -57,7 +57,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
      */
     public static TraceParameterMap deserialize(byte[] bytes, TraceParameterDefinitionMap definitions) {
         TraceParameterMap result = new TraceParameterMap();
-        if (bytes != null && bytes.length > 0) {
+        if (bytes != null) {
             if (bytes.length != definitions.totalSize()) {
                 throw new IllegalArgumentException(String.format(DATA_LENGTH_DEFINITIONS_MISMATCH, bytes.length, definitions.totalSize()));
             }
