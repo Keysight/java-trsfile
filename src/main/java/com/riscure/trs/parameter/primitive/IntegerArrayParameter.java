@@ -8,18 +8,18 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class IntArrayParameter extends TraceParameter {
+public class IntegerArrayParameter extends TraceParameter {
     private final int[] value;
 
-    public IntArrayParameter(int length) {
+    public IntegerArrayParameter(int length) {
         value = new int[length];
     }
 
-    public IntArrayParameter(int[] value) {
+    public IntegerArrayParameter(int[] value) {
         this.value = value;
     }
 
-    public IntArrayParameter(IntArrayParameter toCopy) {
+    public IntegerArrayParameter(IntegerArrayParameter toCopy) {
         this(toCopy.getValue().clone());
     }
 
@@ -29,8 +29,8 @@ public class IntArrayParameter extends TraceParameter {
         }
     }
 
-    public static IntArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
-        IntArrayParameter result = new IntArrayParameter(length);
+    public static IntegerArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
+        IntegerArrayParameter result = new IntegerArrayParameter(length);
         for (int k = 0; k < length; k++) {
             result.value[k] = dis.readInt();
         }
@@ -53,8 +53,8 @@ public class IntArrayParameter extends TraceParameter {
     }
 
     @Override
-    public IntArrayParameter copy() {
-        return new IntArrayParameter(this);
+    public IntegerArrayParameter copy() {
+        return new IntegerArrayParameter(this);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class IntArrayParameter extends TraceParameter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        IntArrayParameter that = (IntArrayParameter) o;
+        IntegerArrayParameter that = (IntegerArrayParameter) o;
 
         return Arrays.equals(value, that.value);
     }

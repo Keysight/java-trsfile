@@ -1,7 +1,7 @@
 package com.riscure.trs.parameter.trace;
 
 import com.riscure.trs.parameter.primitive.ByteArrayParameter;
-import com.riscure.trs.parameter.primitive.IntArrayParameter;
+import com.riscure.trs.parameter.primitive.IntegerArrayParameter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,7 +101,7 @@ public class UnmodifiableTraceParameterMapTest {
                 UnsupportedOperationException.class,
                 () -> immutable.replaceAll(
                         (key, oldValue)
-                                -> new IntArrayParameter(new int[]{1})
+                                -> new IntegerArrayParameter(new int[]{1})
                 )
         );
 
@@ -115,7 +115,7 @@ public class UnmodifiableTraceParameterMapTest {
     public void putIfAbsent() {
         Exception e = assertThrows(
                 UnsupportedOperationException.class,
-                () -> immutable.putIfAbsent("BLA", new IntArrayParameter(new int[]{-1}))
+                () -> immutable.putIfAbsent("BLA", new IntegerArrayParameter(new int[]{-1}))
         );
 
         String expectedMessage = "Unable to set parameter `BLA` to `[-1]`: This trace set is in read mode and cannot be modified.";
@@ -141,7 +141,7 @@ public class UnmodifiableTraceParameterMapTest {
     public void replace() {
         Exception e = assertThrows(
                 UnsupportedOperationException.class,
-                () -> immutable.replace("FOO", new IntArrayParameter(new int[]{1}), new IntArrayParameter(new int[]{-1}))
+                () -> immutable.replace("FOO", new IntegerArrayParameter(new int[]{1}), new IntegerArrayParameter(new int[]{-1}))
         );
 
         String expectedMessage = "Unable to set parameter `FOO` to `[-1]`: This trace set is in read mode and cannot be modified.";
@@ -154,7 +154,7 @@ public class UnmodifiableTraceParameterMapTest {
     public void testReplace() {
         Exception e = assertThrows(
                 UnsupportedOperationException.class,
-                () -> immutable.replace("FOO", new IntArrayParameter(new int[]{-1}))
+                () -> immutable.replace("FOO", new IntegerArrayParameter(new int[]{-1}))
         );
 
         String expectedMessage = "Unable to set parameter `FOO` to `[-1]`: This trace set is in read mode and cannot be modified.";
@@ -171,8 +171,8 @@ public class UnmodifiableTraceParameterMapTest {
                 UnsupportedOperationException.class,
                 () -> immutable.merge(
                         "BLA",
-                        new IntArrayParameter(new int[]{77}),
-                        (traceParameter, traceParameter2) -> new IntArrayParameter(new int[]{55})
+                        new IntegerArrayParameter(new int[]{77}),
+                        (traceParameter, traceParameter2) -> new IntegerArrayParameter(new int[]{55})
                 )
         );
 
