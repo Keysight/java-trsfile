@@ -27,8 +27,10 @@ public class StringParameter extends TraceParameter {
 
     public static StringParameter deserialize(DataInputStream dis, int length) throws IOException {
         byte[] bytes = new byte[length];
-        int bytesRead = dis.read(bytes);
-        if (bytesRead != length) throw new IOException(String.format(INVALID_LENGTH, length, bytesRead));
+        if (length > 0) {
+            int bytesRead = dis.read(bytes);
+            if (bytesRead != length) throw new IOException(String.format(INVALID_LENGTH, length, bytesRead));
+        }
         return new StringParameter(new String(bytes, StandardCharsets.UTF_8));
     }
 
