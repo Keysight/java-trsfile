@@ -584,4 +584,16 @@ public class TestTraceSet {
         byte[] baCopy = (byte[]) copy.get("BA").getValue();
         assertFalse("Arrays should not be equal, but they are", Arrays.equals(baCopy, ba));
     }
+
+    @Test
+    public void testEmptyString() {
+        TraceParameterMap tpm = new TraceParameterMap();
+        tpm.put("EMPTY_STRING", "");
+        TraceParameterDefinitionMap tpdm = TraceParameterDefinitionMap.createFrom(tpm);
+        byte[] serialized = tpm.toByteArray();
+
+        TraceParameterMap deserialized = TraceParameterMap.deserialize(serialized, tpdm);
+        String empty_string = deserialized.get("EMPTY_STRING").toString();
+        assertEquals("", empty_string);
+    }
 }
