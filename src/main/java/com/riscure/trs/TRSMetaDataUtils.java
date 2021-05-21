@@ -4,6 +4,7 @@ import com.riscure.trs.enums.TRSTag;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
+import java.io.DataInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -17,9 +18,10 @@ public class TRSMetaDataUtils {
 
     /**
      * Writes the provided TRS metadata to the stream.
-     * @param fos the file output stream
+     *
+     * @param fos      the file output stream
      * @param metaData the metadata to write
-     * @throws IOException if any write error occurs
+     * @throws IOException        if any write error occurs
      * @throws TRSFormatException if the metadata contains unsupported tags
      */
     public static void writeTRSMetaData(FileOutputStream fos, TRSMetaData metaData) throws IOException, TRSFormatException {
@@ -64,24 +66,27 @@ public class TRSMetaDataUtils {
     }
 
     private static void writeInt(FileOutputStream fos, int value, int length) throws IOException {
-        for (int i = 0; i < length; i++)
+        for (int i = 0; i < length; i++) {
             fos.write((byte) (value >> (i * 8)));
+        }
     }
 
     private static void writeLength(FileOutputStream fos, long length) throws IOException {
         if (length > 0x7F) {
             int lenlen = 1 + (int) (Math.log(length) / Math.log(256));
             fos.write((byte) (0x80 + lenlen));
-            for (int i = 0; i < lenlen; i++)
+            for (int i = 0; i < lenlen; i++) {
                 fos.write((byte) (length >> (i * 8)));
-        } else
+            }
+        } else {
             fos.write((byte) length);
+        }
     }
 
     /**
      * Reads the meta data of a TRS file. The {@code ByteBuffer} is assumed to be positioned at the start of the file; A
      * {@code TRSFormatException} will probably be thrown otherwise, since it cannot be parsed.
-     * 
+     *
      * @param buffer The buffer which wraps the TRS file (should be positioned at the first byte of the file)
      * @return the meta data of a TRS file
      * @throws TRSFormatException If either the file is corrupt or the reader is not positioned at the start of the file
@@ -105,6 +110,16 @@ public class TRSMetaDataUtils {
             readAndStoreData(buffer, tag, length, trs);
         } while (tag != TRSTag.TRACE_BLOCK.getValue());
         return trs;
+    }
+
+    public static String readName(DataInputStream dis) throws IOException {
+        //Read NL
+        short nameLength = dis.readShort();
+        byte[] nameBytes = new byte[nameLength];
+        int read = dis.read(nameBytes, 0, nameLength);
+        if (read != nameLength) throw new IOException("Error reading parameter name");
+        //Read N
+        return new String(nameBytes, StandardCharsets.UTF_8);
     }
 
     private static void readAndStoreData(ByteBuffer buffer, byte tag, int length, TRSMetaData trsMD)
@@ -163,29 +178,18 @@ public class TRSMetaDataUtils {
     private static String readString(ByteBuffer buffer, int length) {
         byte[] ba = new byte[length];
         buffer.get(ba);
-
         return new String(ba, StandardCharsets.UTF_8);
     }
 
-    private static TraceSetParameterMap readTraceSetParameters(ByteBuffer buffer, int length) throws TRSFormatException {
+    private static TraceSetParameterMap readTraceSetParameters(ByteBuffer buffer, int length) {
         byte[] ba = new byte[length];
         buffer.get(ba);
-
-        try {
-            return TraceSetParameterMap.deserialize(ba);
-        } catch (IOException e) {
-            throw new TRSFormatException(e);
-        }
+        return TraceSetParameterMap.deserialize(ba);
     }
 
-    private static TraceParameterDefinitionMap readTraceParameterDefinitions(ByteBuffer buffer, int length) throws TRSFormatException {
+    private static TraceParameterDefinitionMap readTraceParameterDefinitions(ByteBuffer buffer, int length) {
         byte[] ba = new byte[length];
         buffer.get(ba);
-
-        try {
-            return TraceParameterDefinitionMap.deserialize(ba);
-        } catch (IOException e) {
-            throw new TRSFormatException(e);
-        }
+        return TraceParameterDefinitionMap.deserialize(ba);
     }
 }

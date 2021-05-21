@@ -8,31 +8,31 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class FloatArrayParameter extends TraceParameter {
-    private final float[] value;
+public class BooleanArrayParameter extends TraceParameter {
+    private final boolean[] value;
 
-    public FloatArrayParameter(int length) {
-        value = new float[length];
+    public BooleanArrayParameter(int length) {
+        value = new boolean[length];
     }
 
-    public FloatArrayParameter(float[] value) {
+    public BooleanArrayParameter(boolean[] value) {
         this.value = value;
     }
 
-    public FloatArrayParameter(FloatArrayParameter toCopy) {
+    public BooleanArrayParameter(BooleanArrayParameter toCopy) {
         this(toCopy.getValue().clone());
     }
 
     public void serialize(DataOutputStream dos) throws IOException {
-        for (float i : value) {
-            dos.writeFloat(i);
+        for (boolean i : value) {
+            dos.writeByte(i ? 1 : 0);
         }
     }
 
-    public static FloatArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
-        FloatArrayParameter result = new FloatArrayParameter(length);
+    public static BooleanArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
+        BooleanArrayParameter result = new BooleanArrayParameter(length);
         for (int k = 0; k < length; k++) {
-            result.value[k] = dis.readFloat();
+            result.value[k] = dis.readByte() != 0;
         }
         return result;
     }
@@ -44,21 +44,21 @@ public class FloatArrayParameter extends TraceParameter {
 
     @Override
     public ParameterType getType() {
-        return ParameterType.FLOAT;
+        return ParameterType.BOOL;
     }
 
     @Override
-    public float[] getValue() {
+    public boolean[] getValue() {
         return value;
     }
 
     @Override
-    public FloatArrayParameter copy() {
-        return new FloatArrayParameter(this);
+    public BooleanArrayParameter copy() {
+        return new BooleanArrayParameter(this);
     }
 
     @Override
-    public Float getScalarValue() {
+    public Boolean getScalarValue() {
         if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
         return getValue()[0];
     }
@@ -73,7 +73,7 @@ public class FloatArrayParameter extends TraceParameter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        FloatArrayParameter that = (FloatArrayParameter) o;
+        BooleanArrayParameter that = (BooleanArrayParameter) o;
 
         return Arrays.equals(value, that.value);
     }

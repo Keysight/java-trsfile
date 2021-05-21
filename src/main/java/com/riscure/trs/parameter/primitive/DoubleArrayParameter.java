@@ -8,7 +8,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class DoubleArrayParameter implements TraceParameter {
+public class DoubleArrayParameter extends TraceParameter {
     private final double[] value;
 
     public DoubleArrayParameter(int length) {
@@ -17,6 +17,10 @@ public class DoubleArrayParameter implements TraceParameter {
 
     public DoubleArrayParameter(double[] value) {
         this.value = value;
+    }
+
+    public DoubleArrayParameter(DoubleArrayParameter toCopy) {
+        this(toCopy.getValue().clone());
     }
 
     public void serialize(DataOutputStream dos) throws IOException {
@@ -46,6 +50,17 @@ public class DoubleArrayParameter implements TraceParameter {
     @Override
     public double[] getValue() {
         return value;
+    }
+
+    @Override
+    public DoubleArrayParameter copy() {
+        return new DoubleArrayParameter(this);
+    }
+
+    @Override
+    public Double getScalarValue() {
+        if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
+        return getValue()[0];
     }
 
     @Override

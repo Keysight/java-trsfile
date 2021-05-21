@@ -2,7 +2,9 @@ package com.riscure.trs.enums;
 
 import com.riscure.trs.TRSFormatException;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.trace.definition.UnmodifiableTraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
+import com.riscure.trs.parameter.traceset.UnmodifiableTraceSetParameterMap;
 
 public enum TRSTag {
     NUMBER_OF_TRACES                 (0x41, "NT", true,     Integer.class,      4,      0,                 "Number of traces"),
@@ -51,8 +53,8 @@ public enum TRSTag {
     XY_SCAN_WIDTH                    (0x73, "WI", false,    Integer.class,      4,      0,                 "Number of steps in the \"x\" direction during XY scan"),
     XY_SCAN_HEIGHT                   (0x74, "HE", false,    Integer.class,      4,      0,                 "Number of steps in the \"y\" direction during XY scan"),
     XY_MEASUREMENTS_PER_SPOT         (0x75, "ME", false,    Integer.class,      4,      0,                 "Number of consecutive measurements done per spot during XY scan"),
-    TRACE_SET_PARAMETERS             (0x81, "GP", false,    TraceSetParameterMap.class, 0, 0,                 "The set of custom global trace set parameters"),
-    TRACE_PARAMETER_DEFINITIONS      (0x82, "LP", false,    TraceParameterDefinitionMap.class, 0,    0,                 "The set of custom local trace parameters");
+    TRACE_SET_PARAMETERS             (0x76, "GP", false,    TraceSetParameterMap.class, 0, UnmodifiableTraceSetParameterMap.of(new TraceSetParameterMap()),                 "The set of custom global trace set parameters"),
+    TRACE_PARAMETER_DEFINITIONS      (0x77, "LP", false,    TraceParameterDefinitionMap.class, 0, UnmodifiableTraceParameterDefinitionMap.of(new TraceParameterDefinitionMap()),                 "The set of custom local trace parameters");
 
     private static final String UNKNOWN_TAG = "Unknown tag: 0x%X";
 

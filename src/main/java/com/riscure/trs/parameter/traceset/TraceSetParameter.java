@@ -11,8 +11,17 @@ import java.util.Objects;
 public class TraceSetParameter {
     private final TraceParameter value;
 
+    @Override
+    public String toString() {
+        return this.value.toString();
+    }
+
     public TraceSetParameter(TraceParameter instance) {
         this.value = instance;
+    }
+
+    public TraceSetParameter(TraceSetParameter toCopy) {
+        this(toCopy.getValue());
     }
 
     public void serialize(DataOutputStream dos) throws IOException {
@@ -29,6 +38,13 @@ public class TraceSetParameter {
 
     public TraceParameter getValue() {
         return value;
+    }
+
+    /**
+     * @return a new instance of a TraceSetParameter containing a copy of its trace parameter
+     */
+    public TraceSetParameter copy() {
+        return new TraceSetParameter(this);
     }
 
     @Override

@@ -3,10 +3,12 @@ package com.riscure.trs.parameter.primitive;
 import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
-public class LongArrayParameter implements TraceParameter {
+public class LongArrayParameter extends TraceParameter {
     private final long[] value;
 
     public LongArrayParameter(int length) {
@@ -15,6 +17,10 @@ public class LongArrayParameter implements TraceParameter {
 
     public LongArrayParameter(long[] value) {
         this.value = value;
+    }
+
+    public LongArrayParameter(LongArrayParameter toCopy) {
+        this(toCopy.getValue().clone());
     }
 
     public void serialize(DataOutputStream dos) throws IOException {
@@ -44,6 +50,17 @@ public class LongArrayParameter implements TraceParameter {
     @Override
     public long[] getValue() {
         return value;
+    }
+
+    @Override
+    public LongArrayParameter copy() {
+        return new LongArrayParameter(this);
+    }
+
+    @Override
+    public Long getScalarValue() {
+        if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
+        return getValue()[0];
     }
 
     @Override

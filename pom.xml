@@ -6,11 +6,38 @@
 
     <groupId>com.riscure</groupId>
     <artifactId>trsfile</artifactId>
-    <version>2.0</version>
+    <version>2.1</version>
+    <packaging>jar</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Inspector Trace Set `.trs` file support for Java.
+        Riscure Inspector uses the `.trs` file format to save and read traces from disk. To better assist reading and
+        writing trace set files from third parties, Riscure published this Java library.
+    </description>
+    <url>https://github.com/Riscure/java-trsfile</url>
+    <licenses>
+        <license>
+            <name>BSD 3-Clause Clear License</name>
+            <url>https://spdx.org/licenses/BSD-3-Clause-Clear.html</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Riscure Team</name>
+            <organization>Riscure</organization>
+            <organizationUrl>https://www.riscure.com</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:${project.url}.git</connection>
+        <developerConnection>${project.scm.connection}</developerConnection>
+        <url>${project.url}/tree/master</url>
+    </scm>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -25,6 +52,24 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.simplify4u.plugins</groupId>
+                <artifactId>sign-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <!-- keyId must be the the sign-only subkey fingerprint! (master key 718AF75F82773822E8A71DD4CF33AD49CF13F02D is kept offline)-->
+                            <keyId>D9B4FE0BC89DAA12EEAE5B4F397EA166CDA246DB</keyId>
+                            <keyPass>${env.GPG_PASSPHRASE}</keyPass>
+                            <keyFile>${project.basedir}/secrets/718AF75F82773822E8A71DD4CF33AD49CF13F02D_private_subkeys.asc</keyFile>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -70,6 +115,14 @@
                     </filesets>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
+                </configuration>
+            </plugin>
         </plugins>
 
         <pluginManagement>
@@ -94,6 +147,16 @@
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>3.0.0</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.simplify4u.plugins</groupId>
+                    <artifactId>sign-maven-plugin</artifactId>
+                    <version>0.2.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -103,6 +166,24 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.8.0-M1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.7.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.8.0-M1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

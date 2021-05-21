@@ -1,7 +1,7 @@
 package com.riscure.trs.parameter.primitive;
 
-import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.HexUtils;
+import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.parameter.TraceParameter;
 
 import java.io.DataInputStream;
@@ -9,7 +9,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class ByteArrayParameter implements TraceParameter {
+public class ByteArrayParameter extends TraceParameter {
+    private static final String INVALID_LENGTH = "Error parsing byte array: Expected (%d) bytes but found (%d)";
     private final byte[] value;
 
     public ByteArrayParameter(int length) {
@@ -20,13 +21,18 @@ public class ByteArrayParameter implements TraceParameter {
         this.value = value;
     }
 
+    public ByteArrayParameter(ByteArrayParameter toCopy) {
+        this(toCopy.getValue().clone());
+    }
+
     public void serialize(DataOutputStream dos) throws IOException {
         dos.write(value);
     }
 
     public static ByteArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
         ByteArrayParameter result = new ByteArrayParameter(length);
-        dis.read(result.value);
+        int bytesRead = dis.read(result.value);
+        if (bytesRead != length) throw new IOException(String.format(INVALID_LENGTH, length, bytesRead));
         return result;
     }
 
@@ -43,6 +49,17 @@ public class ByteArrayParameter implements TraceParameter {
     @Override
     public byte[] getValue() {
         return value;
+    }
+
+    @Override
+    public ByteArrayParameter copy() {
+        return new ByteArrayParameter(this);
+    }
+
+    @Override
+    public Byte getScalarValue() {
+        if (length() > 1) throw new IllegalArgumentException("Parameter represents an array value of length " + length());
+        return getValue()[0];
     }
 
     @Override

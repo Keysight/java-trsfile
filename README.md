@@ -68,12 +68,16 @@ TraceParameters behave very similar to Trace Set Parameters from a user perspect
 
     1. The length of the added information *must* be the same for every trace. This means that the first trace added to the trace set dictates the length of both arrays _and_ strings. If a longer string is added later, it will be truncated.
     2. The length of every parameter is saved in the header at creation time, in a structure called `TraceParameterDefinitions`. This structure is used when reading out the traces to determine the structure of the included data. This information is _not_ added to the individual traces themselves.
-    3. Going forward, there will be pre-defined tags used to mark important information. At time of writing, the following tags are known:
-        INPUT: the byte array used as input to a cryptographic algorithm
-        OUTPUT: the byte array returned by a cryptographic algorithm
-        KEY: the byte array used as key for a cryptographic operation
+    3. Going forward, there will be pre-defined tags used to mark important information:
         SAMPLES: An alternative for saving the samples of a trace. This may in the future replace the predefined trace structure of title-data-samples.
         TITLE: An alternative for saving the title of a trace. This may in the future replace the predefined trace structure of title-data-samples.
+
+Any additional tags can be added based on the application. Riscure Inspector will have its own definitions. We will try to keep a list here of standardized known tags as best we can.
+
+    - INPUT:    (BYTE ARRAY): the value used as input for a cryptographic operation
+    - OUTPUT:   (BYTE ARRAY): the value returned by a cryptographic operation
+    - KEY:      (BYTE ARRAY): the value used as key for a cryptographic operation
+
 ##### Using Trace Parameters
 Local parameters can be added by creating a `TraceParameters` object when creating a trace. The following java code shows an example:
 ```java
