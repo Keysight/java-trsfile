@@ -1,10 +1,10 @@
 package com.riscure.trs;
 
 import com.riscure.trs.enums.TRSTag;
+import com.riscure.trs.io.LittleEndianInputStream;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
-import java.io.DataInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -112,7 +112,7 @@ public class TRSMetaDataUtils {
         return trs;
     }
 
-    public static String readName(DataInputStream dis) throws IOException {
+    public static String readName(LittleEndianInputStream dis) throws IOException {
         //Read NL
         short nameLength = dis.readShort();
         byte[] nameBytes = new byte[nameLength];

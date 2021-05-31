@@ -5,6 +5,7 @@ import com.riscure.trs.TraceSet;
 import com.riscure.trs.enums.Encoding;
 import com.riscure.trs.enums.ParameterType;
 import com.riscure.trs.enums.TRSTag;
+import com.riscure.trs.io.LittleEndianInputStream;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.primitive.ByteArrayParameter;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
@@ -17,7 +18,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -484,7 +484,7 @@ public class TestTraceSet {
         int errors = 0;
         byte[] empty = new byte[1];
         for (ParameterType type : ParameterType.values()) {
-            try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(empty))) {
+            try (LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(empty))) {
                 TraceParameter.deserialize(type, (short) 4, dis);
             } catch (IOException e) {
                 errors++;

@@ -1,9 +1,13 @@
 package com.riscure.trs.parameter.traceset;
 
 import com.riscure.trs.TRSMetaDataUtils;
+import com.riscure.trs.io.LittleEndianInputStream;
+import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.types.*;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,7 +44,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
      */
     public byte[] serialize() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (DataOutputStream dos = new DataOutputStream(baos)) {
+        try (LittleEndianOutputStream dos = new LittleEndianOutputStream(baos)) {
             //Write NE
             dos.writeShort(size());
             for (Map.Entry<String, TraceSetParameter> entry : entrySet()) {
@@ -68,7 +72,7 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
         TraceSetParameterMap result = new TraceSetParameterMap();
         if (bytes != null && bytes.length > 0) {
             try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
-                DataInputStream dis = new DataInputStream(bais);
+                LittleEndianInputStream dis = new LittleEndianInputStream(bais);
                 //Read NE
                 short numberOfEntries = dis.readShort();
                 for (int k = 0; k < numberOfEntries; k++) {
