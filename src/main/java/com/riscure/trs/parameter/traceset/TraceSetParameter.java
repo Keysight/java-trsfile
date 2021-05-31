@@ -1,10 +1,10 @@
 package com.riscure.trs.parameter.traceset;
 
 import com.riscure.trs.enums.ParameterType;
+import com.riscure.trs.io.LittleEndianInputStream;
+import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.TraceParameter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -24,13 +24,13 @@ public class TraceSetParameter {
         this(toCopy.getValue());
     }
 
-    public void serialize(DataOutputStream dos) throws IOException {
+    public void serialize(LittleEndianOutputStream dos) throws IOException {
         dos.writeByte(value.getType().getValue());
         dos.writeShort(value.length());
         value.serialize(dos);
     }
 
-    public static TraceSetParameter deserialize(DataInputStream dis) throws IOException {
+    public static TraceSetParameter deserialize(LittleEndianInputStream dis) throws IOException {
         ParameterType type = ParameterType.fromValue(dis.readByte());
         short length = dis.readShort();
         return new TraceSetParameter(TraceParameter.deserialize(type, length, dis));

@@ -1,10 +1,10 @@
 package com.riscure.trs.parameter.primitive;
 
 import com.riscure.trs.enums.ParameterType;
+import com.riscure.trs.io.LittleEndianInputStream;
+import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.TraceParameter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -23,13 +23,13 @@ public class DoubleArrayParameter extends TraceParameter {
         this(toCopy.getValue().clone());
     }
 
-    public void serialize(DataOutputStream dos) throws IOException {
+    public void serialize(LittleEndianOutputStream dos) throws IOException {
         for (double i : value) {
             dos.writeDouble(i);
         }
     }
 
-    public static DoubleArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
+    public static DoubleArrayParameter deserialize(LittleEndianInputStream dis, int length) throws IOException {
         DoubleArrayParameter result = new DoubleArrayParameter(length);
         for (int k = 0; k < length; k++) {
             result.value[k] = dis.readDouble();

@@ -1,9 +1,11 @@
 package com.riscure.trs.parameter.trace.definition;
 
 import com.riscure.trs.enums.ParameterType;
+import com.riscure.trs.io.LittleEndianInputStream;
+import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.TraceParameter;
 
-import java.io.*;
+import java.io.IOException;
 
 public class TraceParameterDefinition<T extends TraceParameter> {
     private final ParameterType type;
@@ -22,13 +24,13 @@ public class TraceParameterDefinition<T extends TraceParameter> {
         this.length = length;
     }
 
-    public void serialize(DataOutputStream dos) throws IOException {
+    public void serialize(LittleEndianOutputStream dos) throws IOException {
         dos.writeByte(type.getValue());
         dos.writeShort(length);
         dos.writeShort(offset);
     }
 
-    public static TraceParameterDefinition<TraceParameter> deserialize(DataInputStream dis) throws IOException {
+    public static TraceParameterDefinition<TraceParameter> deserialize(LittleEndianInputStream dis) throws IOException {
         ParameterType type = ParameterType.fromValue(dis.readByte());
         short length = dis.readShort();
         short offset = dis.readShort();

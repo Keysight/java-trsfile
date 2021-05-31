@@ -2,10 +2,10 @@ package com.riscure.trs.parameter.primitive;
 
 import com.riscure.trs.HexUtils;
 import com.riscure.trs.enums.ParameterType;
+import com.riscure.trs.io.LittleEndianInputStream;
+import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.TraceParameter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -25,11 +25,11 @@ public class ByteArrayParameter extends TraceParameter {
         this(toCopy.getValue().clone());
     }
 
-    public void serialize(DataOutputStream dos) throws IOException {
+    public void serialize(LittleEndianOutputStream dos) throws IOException {
         dos.write(value);
     }
 
-    public static ByteArrayParameter deserialize(DataInputStream dis, int length) throws IOException {
+    public static ByteArrayParameter deserialize(LittleEndianInputStream dis, int length) throws IOException {
         ByteArrayParameter result = new ByteArrayParameter(length);
         int bytesRead = dis.read(result.value);
         if (bytesRead != length) throw new IOException(String.format(INVALID_LENGTH, length, bytesRead));

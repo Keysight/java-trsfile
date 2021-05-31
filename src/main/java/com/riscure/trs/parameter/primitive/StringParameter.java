@@ -1,10 +1,10 @@
 package com.riscure.trs.parameter.primitive;
 
 import com.riscure.trs.enums.ParameterType;
+import com.riscure.trs.io.LittleEndianInputStream;
+import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.TraceParameter;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -21,11 +21,11 @@ public class StringParameter extends TraceParameter {
         this(toCopy.getValue());
     }
 
-    public void serialize(DataOutputStream dos) throws IOException {
+    public void serialize(LittleEndianOutputStream dos) throws IOException {
         dos.write(value.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static StringParameter deserialize(DataInputStream dis, int length) throws IOException {
+    public static StringParameter deserialize(LittleEndianInputStream dis, int length) throws IOException {
         byte[] bytes = new byte[length];
         if (length > 0) {
             int bytesRead = dis.read(bytes);
