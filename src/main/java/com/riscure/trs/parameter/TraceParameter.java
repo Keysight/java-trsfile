@@ -1,10 +1,10 @@
 package com.riscure.trs.parameter;
 
 import com.riscure.trs.enums.ParameterType;
+import com.riscure.trs.io.LittleEndianInputStream;
+import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.primitive.*;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
@@ -16,6 +16,7 @@ public abstract class TraceParameter {
 
     /**
      * The number of values of this type in this parameter
+     *
      * @return the number of values of this type in this parameter
      */
     public abstract int length();
@@ -42,20 +43,22 @@ public abstract class TraceParameter {
 
     /**
      * Write this TraceParameter to the specified output stream
+     *
      * @param dos the OutputStream to write to
      * @throws IOException if any problems arise from writing to the stream
      */
-    public abstract void serialize(DataOutputStream dos) throws IOException;
+    public abstract void serialize(LittleEndianOutputStream dos) throws IOException;
 
     /**
      * Read a new TraceParameter from the specified input stream
-     * @param type the type of the parameter to read
+     *
+     * @param type   the type of the parameter to read
      * @param length the number of values to read
-     * @param dis the input stream to read from
+     * @param dis    the input stream to read from
      * @return a new TraceParameter of the specified type and length
      * @throws IOException if any problems arise from reading from the stream
      */
-    public static TraceParameter deserialize(ParameterType type, short length, DataInputStream dis) throws IOException {
+    public static TraceParameter deserialize(ParameterType type, short length, LittleEndianInputStream dis) throws IOException {
         switch (type) {
             case BYTE:
                 return ByteArrayParameter.deserialize(dis, length);

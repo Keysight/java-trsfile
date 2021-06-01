@@ -1,11 +1,15 @@
 package com.riscure.trs.parameter.trace;
 
+import com.riscure.trs.io.LittleEndianInputStream;
+import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.types.*;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -38,7 +42,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
      */
     public byte[] toByteArray() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (DataOutputStream dos = new DataOutputStream(baos)) {
+        try (LittleEndianOutputStream dos = new LittleEndianOutputStream(baos)) {
             for (TraceParameter parameter : values()) {
                 parameter.serialize(dos);
             }
@@ -62,7 +66,7 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
                 throw new IllegalArgumentException(String.format(DATA_LENGTH_DEFINITIONS_MISMATCH, bytes.length, definitions.totalSize()));
             }
             try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes)) {
-                DataInputStream dis = new DataInputStream(bais);
+                LittleEndianInputStream dis = new LittleEndianInputStream(bais);
                 for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> entry : definitions.entrySet()) {
                     TraceParameter traceParameter = TraceParameter.deserialize(entry.getValue().getType(), entry.getValue().getLength(), dis);
                     result.put(entry.getKey(), traceParameter);
