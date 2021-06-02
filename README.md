@@ -6,7 +6,17 @@ Riscure Inspector uses the `.trs` file format to save and read traces from disk.
 This library supports reading and writing of `.trs` files, but it does not support modifying existing `.trs` files.
 
 ### Installation
-Simply include the latest release of the library jar in your project. It is currently not available through any distribution networks (Maven central, etc..). If this changes, it will be stated here.
+#### Maven central
+This library is available on Maven Central. Use the following information to include it in your pom.xml:
+
+    <dependency>
+      <groupId>com.riscure</groupId>
+      <artifactId>trsfile</artifactId>
+      <version>2.2.1</version>
+    </dependency>
+
+#### Basic
+Alternatively, simply include the latest release of the library jar in your project.
 
 ### General use tips
 ##### File creation
