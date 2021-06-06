@@ -43,7 +43,7 @@ public class TraceSet implements AutoCloseable {
     private FileInputStream readStream;
     private FileChannel channel;
 
-    private MappedByteBuffer buffer;
+    private ByteBuffer buffer;
 
     private long bufferStart;       //the byte index of the file where the buffer window starts
     private long bufferSize;        //the number of bytes that are in the buffer window
