@@ -66,18 +66,15 @@
             </plugin>
 
             <plugin>
-                <groupId>org.simplify4u.plugins</groupId>
-                <artifactId>sign-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>
-                        <configuration>
-                            <keyId>5287B80DBAC9612B12C06D8919239F30014C7B35</keyId>
-                            <keyPass>${env.PGP_PASSPHRASE}</keyPass>
-                            <skipNoKey>false</skipNoKey>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -85,7 +82,6 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
@@ -177,9 +173,14 @@
                     <version>3.0.0-M5</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.simplify4u.plugins</groupId>
-                    <artifactId>sign-maven-plugin</artifactId>
-                    <version>0.2.0</version>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.7</version>
                 </plugin>
             </plugins>
         </pluginManagement>
