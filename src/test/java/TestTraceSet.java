@@ -254,7 +254,7 @@ public class TestTraceSet {
                 parameters.put("BYTEARRAY", new byte[]{(byte) k, (byte) k, (byte) k});
                 parameters.put(TraceParameter.SAMPLES, new float[]{(float) k, (float) k, (float) k});
                 parameters.put(TraceParameter.TITLE, strings.get(k % strings.size()));
-                traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
+                traceWithParameters.add(Trace.create(strings.get(k % strings.size()), FLOAT_SAMPLES, parameters));
                 testParameters.add(parameters);
             }
         }
