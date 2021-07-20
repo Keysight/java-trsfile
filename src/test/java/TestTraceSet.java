@@ -11,6 +11,7 @@ import com.riscure.trs.parameter.primitive.ByteArrayParameter;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
 import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.traceset.TraceSetParameter;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 import com.riscure.trs.types.*;
 import org.junit.AfterClass;
@@ -595,5 +596,25 @@ public class TestTraceSet {
         TraceParameterMap deserialized = TraceParameterMap.deserialize(serialized, tpdm);
         String empty_string = deserialized.get("EMPTY_STRING").toString();
         assertEquals("", empty_string);
+    }
+
+    @Test
+    public void testTooLargeArraySetParameter() {
+        int arrayLength = 65536;
+        IntegerArrayTypeKey key = new IntegerArrayTypeKey("TOO_LARGE_ARRAY");
+        TraceSetParameterMap tspm = new TraceSetParameterMap();
+        tspm.put(key, new int[arrayLength]);
+        assertThrows(RuntimeException.class, tspm::serialize);
+    }
+
+    @Test
+    public void testLargeArraySetParameter() {
+        int arrayLength = 65535;
+        IntegerArrayTypeKey key = new IntegerArrayTypeKey("JUST_SMALL_ENOUGH_ARRAY");
+        TraceSetParameterMap tspm = new TraceSetParameterMap();
+        tspm.put(key, new int[arrayLength]);
+        byte[] serialize = tspm.serialize();
+        TraceSetParameterMap deserialize = TraceSetParameterMap.deserialize(serialize);
+        assertEquals(arrayLength, deserialize.getOrElseThrow(key).length);
     }
 }
