@@ -12,7 +12,7 @@ This library is available on Maven Central. Use the following information to inc
     <dependency>
       <groupId>com.riscure</groupId>
       <artifactId>trsfile</artifactId>
-      <version>2.2.2</version>
+      <version>2.2.3</version>
     </dependency>
 
 #### Basic
