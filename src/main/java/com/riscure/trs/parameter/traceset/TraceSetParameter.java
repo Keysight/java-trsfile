@@ -38,7 +38,7 @@ public class TraceSetParameter {
 
     public static TraceSetParameter deserialize(LittleEndianInputStream dis) throws IOException {
         ParameterType type = ParameterType.fromValue(dis.readByte());
-        short length = dis.readShort();
+        int length = dis.readShort() & MAX_LENGTH;
         return new TraceSetParameter(TraceParameter.deserialize(type, length, dis));
     }
 
