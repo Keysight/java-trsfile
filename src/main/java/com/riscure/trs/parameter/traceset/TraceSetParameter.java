@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class TraceSetParameter {
+    private static final String LENGTH_ERROR = "length of parameter (%d) exceeds maximum length (%d)";
+    private static final int MAX_LENGTH = 0x0FFFF;
+
     private final TraceParameter value;
 
     @Override
@@ -25,6 +28,9 @@ public class TraceSetParameter {
     }
 
     public void serialize(LittleEndianOutputStream dos) throws IOException {
+        if (value.length() != (value.length() & MAX_LENGTH)) {
+            throw new IOException(String.format(LENGTH_ERROR, value.length(), MAX_LENGTH));
+        }
         dos.writeByte(value.getType().getValue());
         dos.writeShort(value.length());
         value.serialize(dos);
