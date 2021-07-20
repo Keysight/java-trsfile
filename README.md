@@ -12,7 +12,7 @@ This library is available on Maven Central. Use the following information to inc
     <dependency>
       <groupId>com.riscure</groupId>
       <artifactId>trsfile</artifactId>
-      <version>2.2.1</version>
+      <version>2.2.3</version>
     </dependency>
 
 #### Basic
@@ -76,18 +76,18 @@ ts.close();
 #### Trace Parameters
 Trace Parameters behave very similar to Trace Set Parameters from a user perspective. They are values that can be added to _every_ trace, describing specific values that can vary between traces. The data types that can be used are the same as for Trace Set Parameters. However, there are several details that are different:
 
-    1. The length of the added information *must* be the same for every trace. This means that the first trace added to the trace set dictates the length of both arrays _and_ strings. If a longer string is added later, it will be truncated.
-    2. The length of every parameter is saved in the header at creation time, in a structure called `TraceParameterDefinitionMap`. This structure is used when reading out the traces to determine the structure of the included data. This information is _not_ added to the individual traces themselves.
-    3. Going forward, there will be pre-defined tags used to mark important information:
+1. The length of the added information *must* be the same for every trace. This means that the first trace added to the trace set dictates the length of both arrays _and_ strings. If a longer string is added later, it will be truncated.
+2. The length of every parameter is saved in the header at creation time, in a structure called `TraceParameterDefinitionMap`. This structure is used when reading out the traces to determine the structure of the included data. This information is _not_ added to the individual traces themselves.
+3. Going forward, there will be pre-defined tags used to mark important information:
         SAMPLES: An alternative for saving the samples of a trace. This may in the future replace the predefined trace structure of title-data-samples.
         TITLE: An alternative for saving the title of a trace. This may in the future replace the predefined trace structure of title-data-samples.
 
 Any additional tags can be added based on the application.  
 
 ##### Using Trace Parameters
-Local parameters can be added by creating a `TraceParameters` object when creating a trace. The following java code shows an example:
+Local parameters can be added by creating a `TraceParameterMap` object when creating a trace. The following java code shows an example:
 ```java
-TraceParameters parameters = new TraceParameters();
+TraceParameterMap parameters = new TraceParameterMap();
 parameters.put("BYTE", (byte)1);
 parameters.put("SHORT", (short)2);
 parameters.put("INT", 3);
@@ -103,7 +103,7 @@ parameters.put("LONGARRAY", new long[]{3L, 4L, 5L});
 parameters.put("DOUBLEARRAY", new double[]{6.0, 7.0, 8.0});
 Trace.create("trace title", new float[0], parameters);
 ```
-Note that the previously mentioned `TraceParameterDefinitionMap` are created automatically when adding the first trace.
+Note that the previously mentioned `TraceParameterDefinitionMap` is created automatically when adding the first trace.
 
 ### Reading `.trs` files
 ```java
@@ -214,9 +214,6 @@ FILTER:HIGH_BOUND           | FLOAT         | The upper bound of the frequency f
 FILTER:SEGMENTS:VALUES      | FLOAT ARRAY   | The values describing the filter segments
 FILTER:SEGMENTS:COUNT       | INTEGER       | The number of value segments in the filter
 XYZ:RELATIVE_POSITION       | DOUBLE ARRAY  | The XYZ position where this trace was measured relative to the origin specified in the set parameters
-
-## Documentation
-TODO
 
 ## Testing
 This is a Maven project. Tests are run automatically when building the Maven project.

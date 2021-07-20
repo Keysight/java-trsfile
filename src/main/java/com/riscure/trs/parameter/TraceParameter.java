@@ -58,7 +58,7 @@ public abstract class TraceParameter {
      * @return a new TraceParameter of the specified type and length
      * @throws IOException if any problems arise from reading from the stream
      */
-    public static TraceParameter deserialize(ParameterType type, short length, LittleEndianInputStream dis) throws IOException {
+    public static TraceParameter deserialize(ParameterType type, int length, LittleEndianInputStream dis) throws IOException {
         switch (type) {
             case BYTE:
                 return ByteArrayParameter.deserialize(dis, length);

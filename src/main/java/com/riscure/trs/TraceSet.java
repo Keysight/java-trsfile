@@ -14,7 +14,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.*;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +36,7 @@ public class TraceSet implements AutoCloseable {
     private static final String UNKNOWN_SAMPLE_CODING = "Error reading TRS file: unknown sample coding '%d'";
     private static final long MAX_BUFFER_SIZE = Integer.MAX_VALUE;
     private static final String PARAMETER_NOT_DEFINED = "Parameter %s is saved in the trace, but was not found in the header definition";
+    private static final CharsetDecoder UTF8_DECODER = StandardCharsets.UTF_8.newDecoder();
 
     //Reading variables
     private int metaDataSize;
@@ -207,10 +207,7 @@ public class TraceSet implements AutoCloseable {
      */
     private void truncateStrings(Trace trace, TRSMetaData metaData) {
         int titleSpace = metaData.getInt(TITLE_SPACE);
-        String title = trace.getTitle();
-        if (title != null && titleSpace < title.getBytes(StandardCharsets.UTF_8).length) {
-            trace.setTitle(fitUtf8StringToByteLength(title, titleSpace));
-        }
+        trace.setTitle(fitUtf8StringToByteLength(trace.getTitle(), titleSpace));
         TraceParameterDefinitionMap traceParameterDefinitionMap = metaData.getTraceParameterDefinitions();
         for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> definition : traceParameterDefinitionMap.entrySet()) {
             TraceParameterDefinition<TraceParameter> value = definition.getValue();
@@ -236,9 +233,7 @@ public class TraceSet implements AutoCloseable {
         if (s == null) {
             return null;
         }
-        Charset charset = StandardCharsets.UTF_8;
-        CharsetDecoder decoder = charset.newDecoder();
-        byte[] sba = s.getBytes(charset);
+        byte[] sba = s.getBytes(StandardCharsets.UTF_8);
         if (sba.length <= maxBytes) {
             return new String(Arrays.copyOf(sba, maxBytes));
         }
@@ -246,9 +241,10 @@ public class TraceSet implements AutoCloseable {
         ByteBuffer bb = ByteBuffer.wrap(sba, 0, maxBytes);
         CharBuffer cb = CharBuffer.allocate(maxBytes);
         // Ignore an incomplete character
-        decoder.onMalformedInput(CodingErrorAction.IGNORE);
-        decoder.decode(bb, cb, true);
-        decoder.flush(cb);
+        UTF8_DECODER.reset();
+        UTF8_DECODER.onMalformedInput(CodingErrorAction.IGNORE);
+        UTF8_DECODER.decode(bb, cb, true);
+        UTF8_DECODER.flush(cb);
         return new String(cb.array(), 0, cb.position());
     }
 
