@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
@@ -268,5 +269,13 @@ public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
     @Override
     public int hashCode() {
         return super.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("TraceParameterMap{%s}",
+                entrySet().stream()
+                          .map(entry -> String.format("%s: %s", entry.getKey(), entry.getValue()))
+                          .collect(Collectors.joining("%n")));
     }
 }

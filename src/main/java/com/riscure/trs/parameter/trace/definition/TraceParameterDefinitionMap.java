@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class represents the header definitions of all user-added local parameters in the trace format
@@ -120,5 +121,13 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
     @Override
     public int hashCode() {
         return super.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("TraceParameterDefinitionMap{%s}",
+                entrySet().stream()
+                          .map(entry -> String.format("%s: %s", entry.getKey(), entry.getValue()))
+                          .collect(Collectors.joining("%n")));
     }
 }

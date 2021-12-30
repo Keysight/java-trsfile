@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This class represents the header definitions of all user-added global parameters of the trace set
@@ -275,5 +276,13 @@ public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParamete
     @Override
     public int hashCode() {
         return super.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("TraceSetParameterMap{%s}",
+                entrySet().stream()
+                          .map(entry -> String.format("%s: %s", entry.getKey(), entry.getValue()))
+                          .collect(Collectors.joining("%n")));
     }
 }
