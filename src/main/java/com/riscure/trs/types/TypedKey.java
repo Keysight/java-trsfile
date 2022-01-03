@@ -61,4 +61,12 @@ public abstract class TypedKey<T> {
         result = 31 * result + (key != null ? key.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "TypedKey{" +
+                "key='" + key +
+                "', cls=" + cls +
+                '}';
+    }
 }
