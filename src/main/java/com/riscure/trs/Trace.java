@@ -11,6 +11,9 @@ import java.nio.FloatBuffer;
  * including potential associated data and a title
  */
 public class Trace {
+    private static final String TO_STRING_FORMAT = "Trace{Title='%s', numberOfSamples=%d, shifted=%d, " +
+            "aggregatesValid=%b, hasIllegalValues=%b, isReal=%b, max=%f, min=%f%n%s}";
+
     /**
      * Factory method. This will copy the sample array for stability.
      * @param sample the sample array
@@ -192,6 +195,12 @@ public class Trace {
      */
     public void setTraceSet(TraceSet traceSet) {
         this.traceSet = traceSet;
+    }
+
+    @Override
+    public String toString() {
+        return String.format(TO_STRING_FORMAT, title, sample.array().length, shifted,
+                aggregatesValid, hasIllegalValues, isReal, max, min, parameters);
     }
 
     /** A map of all custom named trace parameters */

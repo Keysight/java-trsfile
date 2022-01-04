@@ -16,7 +16,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class TraceParameterMap extends LinkedHashMap<String, TraceParameter> {
-    private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
+    private static final String KEY_NOT_FOUND = "TraceParameter %s was not found in the trace.";
     private static final String EMPTY_DATA_BUT_NONEMPTY_DEFINITIONS = "The provided byte array is null or empty, but the provided definitions are not";
     private static final String DATA_LENGTH_DEFINITIONS_MISMATCH = "The provided byte array (%d bytes) does not match the total definitions length (%d bytes)";
 
