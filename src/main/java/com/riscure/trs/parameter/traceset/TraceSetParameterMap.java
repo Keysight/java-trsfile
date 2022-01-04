@@ -20,7 +20,7 @@ import java.util.Optional;
  * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
  */
 public class TraceSetParameterMap extends LinkedHashMap<String, TraceSetParameter> {
-    private static final String KEY_NOT_FOUND = "Parameter %s was not found in the trace set.";
+    private static final String KEY_NOT_FOUND = "TraceSetParameter %s was not found in the trace set.";
 
     public TraceSetParameterMap() {
         super();
