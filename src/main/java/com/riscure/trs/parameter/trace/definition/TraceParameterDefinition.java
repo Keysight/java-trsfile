@@ -6,6 +6,7 @@ import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.TraceParameter;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 public class TraceParameterDefinition<T extends TraceParameter> {
     private final ParameterType type;
@@ -67,5 +68,10 @@ public class TraceParameterDefinition<T extends TraceParameter> {
         result = 31 * result + (int) offset;
         result = 31 * result + (int) length;
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("TraceParameterDefinition{Type=%s, Offset=%d, Length=%d}", getType(), getOffset(), getLength());
     }
 }
