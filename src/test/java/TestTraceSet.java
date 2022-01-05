@@ -617,4 +617,30 @@ public class TestTraceSet {
         TraceSetParameterMap deserialize = TraceSetParameterMap.deserialize(serialize);
         assertEquals(arrayLength, deserialize.getOrElseThrow(key).length);
     }
+
+    @Test
+    public void testReadOneBeyondTracesetLimit() throws IOException, TRSFormatException {
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath() + File.separator + BYTES_TRS)) {
+            int numberOfTracesRead = readable.getMetaData().getInt(TRSTag.NUMBER_OF_TRACES);
+            Encoding encoding = Encoding.fromValue(readable.getMetaData().getInt(TRSTag.SAMPLE_CODING));
+            assertEquals(Encoding.BYTE, encoding);
+            assertEquals(NUMBER_OF_TRACES, numberOfTracesRead);
+            assertTrue(
+                    assertThrows(IllegalArgumentException.class, () -> readable.get(NUMBER_OF_TRACES))
+                            .getMessage().startsWith("Requested trace index"));
+        }
+    }
+
+    @Test
+    public void testReadTwoBeyondTracesetLimit() throws IOException, TRSFormatException {
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath() + File.separator + BYTES_TRS)) {
+            int numberOfTracesRead = readable.getMetaData().getInt(TRSTag.NUMBER_OF_TRACES);
+            Encoding encoding = Encoding.fromValue(readable.getMetaData().getInt(TRSTag.SAMPLE_CODING));
+            assertEquals(Encoding.BYTE, encoding);
+            assertEquals(NUMBER_OF_TRACES, numberOfTracesRead);
+            assertTrue(
+                    assertThrows(IllegalArgumentException.class, () -> readable.get(NUMBER_OF_TRACES + 1))
+                            .getMessage().startsWith("Requested trace index"));
+        }
+    }
 }
