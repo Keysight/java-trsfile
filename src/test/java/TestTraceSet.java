@@ -647,4 +647,20 @@ public class TestTraceSet {
                             .getMessage().startsWith("Requested trace index"));
         }
     }
+
+    /**
+     * Test to reproduce Github issue #61: Reading a legacy trace with a 0-length data field
+     */
+    @Test
+    void test61ReadLegacyTraceWithoutData() throws IOException, TRSFormatException {
+        Path filePath = tempDir.resolve("test_issue_61.trs");
+        TRSMetaData metaData = new TRSMetaData();
+        metaData.put(TRSTag.TRS_VERSION, 1);
+        try (TraceSet ts = TraceSet.create(filePath.toString(), metaData)) {
+            ts.add(new Trace(new float[]{}));
+        }
+        try (TraceSet ts = TraceSet.open(filePath.toString())) {
+            assertDoesNotThrow(() -> ts.get(0));
+        }
+    }
 }
