@@ -161,7 +161,9 @@ public class TraceSet implements AutoCloseable {
                 //legacy mode
                 byte[] data = readData();
                 traceParameterMap = new TraceParameterMap();
-                traceParameterMap.put("LEGACY_DATA", data);
+                if (data.length > 0) {
+                    traceParameterMap.put("LEGACY_DATA", data);
+                }
             }
 
             float[] samples = readSamples();
