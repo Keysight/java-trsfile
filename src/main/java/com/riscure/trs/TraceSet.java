@@ -126,8 +126,6 @@ public class TraceSet implements AutoCloseable {
         if (!open) throw new IllegalArgumentException(TRACE_SET_NOT_OPEN);
         if (writing) throw new IllegalArgumentException(TRACE_SET_IN_WRITE_MODE);
 
-        moveBufferIfNecessary(index);
-
         long traceSize = calculateTraceSize();
         long nrOfTraces = this.metaData.getInt(NUMBER_OF_TRACES);
         if (index >= nrOfTraces) {
@@ -140,6 +138,9 @@ public class TraceSet implements AutoCloseable {
             String msg = String.format(ERROR_READING_FILE, fileSize, metaDataSize, traceSize, nrOfTraces);
             throw new IllegalStateException(msg);
         }
+
+        moveBufferIfNecessary(index);
+
         long absolutePosition = metaDataSize + index * traceSize;
         buffer.position((int) (absolutePosition - this.bufferStart));
 
@@ -160,7 +161,9 @@ public class TraceSet implements AutoCloseable {
                 //legacy mode
                 byte[] data = readData();
                 traceParameterMap = new TraceParameterMap();
-                traceParameterMap.put("LEGACY_DATA", data);
+                if (data.length > 0) {
+                    traceParameterMap.put("LEGACY_DATA", data);
+                }
             }
 
             float[] samples = readSamples();

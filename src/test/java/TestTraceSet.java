@@ -14,9 +14,10 @@ import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
 import com.riscure.trs.parameter.traceset.TraceSetParameter;
 import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 import com.riscure.trs.types.*;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -25,7 +26,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class TestTraceSet {
     private static Path tempDir;
@@ -42,7 +44,7 @@ public class TestTraceSet {
     private static final String TVLA_STRING_VALUE = "Trace set contains the following TVLA sets: Random, R5S-Box_Out\n" +
             "AES-128 ENCRYPT (Input -> Output) Round 5 S-Box Out:HW(3~7)";
 
-    @BeforeClass
+    @BeforeAll
     public static void createTempDir() throws IOException, TRSFormatException {
         tempDir = Files.createTempDirectory("TestTraceSet");
 
@@ -71,7 +73,7 @@ public class TestTraceSet {
         }
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() throws InterruptedException {
         //We need to allow a little time for java to release all handles
         System.gc();
@@ -93,7 +95,7 @@ public class TestTraceSet {
     }
 
     @Test
-    public void testOpenBytes() throws IOException, TRSFormatException {
+    void testOpenBytes() throws IOException, TRSFormatException {
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + BYTES_TRS)) {
             int numberOfTracesRead = readable.getMetaData().getInt(TRSTag.NUMBER_OF_TRACES);
             Encoding encoding = Encoding.fromValue(readable.getMetaData().getInt(TRSTag.SAMPLE_CODING));
@@ -108,7 +110,7 @@ public class TestTraceSet {
     }
 
     @Test
-    public void testOpenShorts() throws IOException, TRSFormatException {
+    void testOpenShorts() throws IOException, TRSFormatException {
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + SHORTS_TRS)) {
             int numberOfTracesRead = readable.getMetaData().getInt(TRSTag.NUMBER_OF_TRACES);
             Encoding encoding = Encoding.fromValue(readable.getMetaData().getInt(TRSTag.SAMPLE_CODING));
@@ -123,7 +125,7 @@ public class TestTraceSet {
     }
 
     @Test
-    public void testOpenInts() throws IOException, TRSFormatException {
+    void testOpenInts() throws IOException, TRSFormatException {
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + INTS_TRS)) {
             int numberOfTracesRead = readable.getMetaData().getInt(TRSTag.NUMBER_OF_TRACES);
             Encoding encoding = Encoding.fromValue(readable.getMetaData().getInt(TRSTag.SAMPLE_CODING));
@@ -138,7 +140,7 @@ public class TestTraceSet {
     }
 
     @Test
-    public void testOpenFloats() throws IOException, TRSFormatException {
+    void testOpenFloats() throws IOException, TRSFormatException {
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + FLOATS_TRS)) {
             int numberOfTracesRead = readable.getMetaData().getInt(TRSTag.NUMBER_OF_TRACES);
             Encoding encoding = Encoding.fromValue(readable.getMetaData().getInt(TRSTag.SAMPLE_CODING));
@@ -153,7 +155,7 @@ public class TestTraceSet {
     }
 
     @Test
-    public void testUTF8Title() throws IOException, TRSFormatException {
+    void testUTF8Title() throws IOException, TRSFormatException {
         String title = "씨브 크레그스만";
         String name = UUID.randomUUID().toString() + TRS;
         try (TraceSet ts = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name)) {
@@ -174,7 +176,7 @@ public class TestTraceSet {
      * @throws TRSFormatException
      */
     @Test
-    public void testWriteTraceSetParameters() throws IOException, TRSFormatException {
+    void testWriteTraceSetParameters() throws IOException, TRSFormatException {
         TRSMetaData metaData = TRSMetaData.create();
         TraceSetParameterMap parameters = new TraceSetParameterMap();
         parameters.put("BYTE", (byte) 1);
@@ -211,8 +213,8 @@ public class TestTraceSet {
      * @throws IOException
      * @throws TRSFormatException
      */
-    @Test(expected = TRSFormatException.class)
-    public void testWriteTraceParametersInvalidName() throws IOException, TRSFormatException {
+    @Test
+    void testWriteTraceParametersInvalidName() throws IOException, TRSFormatException {
         TRSMetaData metaData = TRSMetaData.create();
         String parameterName = String.format("%100000s", "XYZ");
         //CREATE TRACE
@@ -223,10 +225,12 @@ public class TestTraceSet {
             traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
         }
         //READ BACK AND CHECK RESULT
-        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
-            TraceParameterDefinitionMap parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
-            parameterDefinitions.forEach((key, parameter) -> assertEquals(parameterName, key));
-        }
+        assertThrows(TRSFormatException.class, () -> {
+            try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+                TraceParameterDefinitionMap parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
+                parameterDefinitions.forEach((key, parameter) -> assertEquals(parameterName, key));
+            }
+        });
     }
 
     /**
@@ -239,7 +243,7 @@ public class TestTraceSet {
      * @throws TRSFormatException
      */
     @Test
-    public void testWriteTraceParametersVaryingStringLength() throws IOException, TRSFormatException {
+     void testWriteTraceParametersVaryingStringLength() throws IOException, TRSFormatException {
         TRSMetaData metaData = TRSMetaData.create();
         List<TraceParameterMap> testParameters = new ArrayList<>();
         List<String> strings = new ArrayList<>();
@@ -270,7 +274,7 @@ public class TestTraceSet {
      * @throws TRSFormatException
      */
     @Test
-    public void testReadTraceParametersTyped() throws IOException, TRSFormatException {
+    void testReadTraceParametersTyped() throws IOException, TRSFormatException {
         TRSMetaData metaData = TRSMetaData.create();
         List<TraceParameterMap> testParameters = new ArrayList<>();
         //CREATE TRACE
@@ -441,7 +445,7 @@ public class TestTraceSet {
      * @throws TRSFormatException
      */
     @Test
-    public void testExceptionWrongType() throws IOException, TRSFormatException {
+    void testExceptionWrongType() throws IOException, TRSFormatException {
         TRSMetaData metaData = TRSMetaData.create();
         //CREATE TRACE
         String name = UUID.randomUUID().toString() + TRS;
@@ -462,7 +466,7 @@ public class TestTraceSet {
      * @throws TRSFormatException
      */
     @Test
-    public void testContainsNonArray() throws IOException, TRSFormatException {
+    void testContainsNonArray() throws IOException, TRSFormatException {
         ByteTypeKey byteKey = new ByteTypeKey("BYTE");
         String name = UUID.randomUUID().toString() + TRS;
         try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name)) {
@@ -481,7 +485,7 @@ public class TestTraceSet {
      * Introduced to test #11: TraceParameter.deserialize does not check the actual returned length
      */
     @Test
-    public void testInvalidParameterLength() {
+    void testInvalidParameterLength() {
         int errors = 0;
         byte[] empty = new byte[1];
         for (ParameterType type : ParameterType.values()) {
@@ -498,7 +502,7 @@ public class TestTraceSet {
      * This test was added to test #26: Trace(Set)ParameterMap is modifiable in read only mode
      */
     @Test
-    public void testModificationAfterReadback() throws IOException, TRSFormatException {
+    void testModificationAfterReadback() throws IOException, TRSFormatException {
         try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + BYTES_TRS)) {
             assertThrows(UnsupportedOperationException.class, () -> readable.getMetaData().getTraceSetParameters().put("SHOULD_FAIL", 0));
             assertThrows(UnsupportedOperationException.class, () -> readable.getMetaData().getTraceParameterDefinitions().put("SHOULD_FAIL", new TraceParameterDefinition<TraceParameter>(ParameterType.BYTE, (short)1, (short)1)));
@@ -514,7 +518,7 @@ public class TestTraceSet {
      * Expected: an exception is thrown when adding an empty parameter
      */
     @Test
-    public void testEmptyArrayParameter() {
+    void testEmptyArrayParameter() {
         assertThrows(IllegalArgumentException.class, () -> new TraceParameterMap().put("EMPTY", new byte[0]));
     }
 
@@ -522,7 +526,7 @@ public class TestTraceSet {
      * This test checks whether a Trace(Set)ParameterMap correctly works with typed keys
      */
     @Test
-    public void testContainsTypedKey() {
+    void testContainsTypedKey() {
         TraceParameterMap tpm = new TraceParameterMap();
         TraceSetParameterMap tspm = new TraceSetParameterMap();
         String rawKey = "BYTE";
@@ -538,7 +542,7 @@ public class TestTraceSet {
      * This test checks whether you can get an array type of a simple value
      */
     @Test
-    public void testGetArrayOfLengthOne() {
+    void testGetArrayOfLengthOne() {
         TraceParameterMap tpm = new TraceParameterMap();
         TraceSetParameterMap tspm = new TraceSetParameterMap();
 
@@ -559,7 +563,7 @@ public class TestTraceSet {
      * This test checks whether a Trace(Set)ParameterMap correctly fails with a typed key of the incorrect type
      */
     @Test
-    public void testContainsWrongTypedKey() {
+    void testContainsWrongTypedKey() {
         TraceParameterMap tpm = new TraceParameterMap();
         TraceSetParameterMap tspm = new TraceSetParameterMap();
         String rawKey = "BYTE";
@@ -575,7 +579,7 @@ public class TestTraceSet {
      * This test ensure that the underlying data of a copied map cannot change underlying map itself
      */
     @Test
-    public void testCopyConstructor() {
+    void testCopyConstructor() {
         byte[] ba = {1, 2, 3, 4, 5};
         ByteArrayParameter bap = new ByteArrayParameter(ba);
         TraceParameterMap tpm = new TraceParameterMap();
@@ -583,11 +587,11 @@ public class TestTraceSet {
         TraceParameterMap copy = tpm.copy();
         ba[1] = 6;
         byte[] baCopy = (byte[]) copy.get("BA").getValue();
-        assertFalse("Arrays should not be equal, but they are", Arrays.equals(baCopy, ba));
+        assertFalse(Arrays.equals(baCopy, ba), "Arrays should not be equal, but they are");
     }
 
     @Test
-    public void testEmptyString() {
+    void testEmptyString() {
         TraceParameterMap tpm = new TraceParameterMap();
         tpm.put("EMPTY_STRING", "");
         TraceParameterDefinitionMap tpdm = TraceParameterDefinitionMap.createFrom(tpm);
@@ -599,7 +603,7 @@ public class TestTraceSet {
     }
 
     @Test
-    public void testTooLargeArraySetParameter() {
+    void testTooLargeArraySetParameter() {
         int arrayLength = 65536;
         IntegerArrayTypeKey key = new IntegerArrayTypeKey("TOO_LARGE_ARRAY");
         TraceSetParameterMap tspm = new TraceSetParameterMap();
@@ -608,7 +612,7 @@ public class TestTraceSet {
     }
 
     @Test
-    public void testLargeArraySetParameter() {
+    void testLargeArraySetParameter() {
         int arrayLength = 65535;
         IntegerArrayTypeKey key = new IntegerArrayTypeKey("JUST_SMALL_ENOUGH_ARRAY");
         TraceSetParameterMap tspm = new TraceSetParameterMap();
@@ -616,5 +620,47 @@ public class TestTraceSet {
         byte[] serialize = tspm.serialize();
         TraceSetParameterMap deserialize = TraceSetParameterMap.deserialize(serialize);
         assertEquals(arrayLength, deserialize.getOrElseThrow(key).length);
+    }
+
+    @Test
+    void testReadOneBeyondTracesetLimit() throws IOException, TRSFormatException {
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath() + File.separator + BYTES_TRS)) {
+            int numberOfTracesRead = readable.getMetaData().getInt(TRSTag.NUMBER_OF_TRACES);
+            Encoding encoding = Encoding.fromValue(readable.getMetaData().getInt(TRSTag.SAMPLE_CODING));
+            assertEquals(Encoding.BYTE, encoding);
+            assertEquals(NUMBER_OF_TRACES, numberOfTracesRead);
+            assertTrue(
+                    assertThrows(IllegalArgumentException.class, () -> readable.get(NUMBER_OF_TRACES))
+                            .getMessage().startsWith("Requested trace index"));
+        }
+    }
+
+    @Test
+    void testReadTwoBeyondTracesetLimit() throws IOException, TRSFormatException {
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath() + File.separator + BYTES_TRS)) {
+            int numberOfTracesRead = readable.getMetaData().getInt(TRSTag.NUMBER_OF_TRACES);
+            Encoding encoding = Encoding.fromValue(readable.getMetaData().getInt(TRSTag.SAMPLE_CODING));
+            assertEquals(Encoding.BYTE, encoding);
+            assertEquals(NUMBER_OF_TRACES, numberOfTracesRead);
+            assertTrue(
+                    assertThrows(IllegalArgumentException.class, () -> readable.get(NUMBER_OF_TRACES + 1))
+                            .getMessage().startsWith("Requested trace index"));
+        }
+    }
+
+    /**
+     * Test to reproduce Github issue #61: Reading a legacy trace with a 0-length data field
+     */
+    @Test
+    void test61ReadLegacyTraceWithoutData() throws IOException, TRSFormatException {
+        Path filePath = tempDir.resolve("test_issue_61.trs");
+        TRSMetaData metaData = new TRSMetaData();
+        metaData.put(TRSTag.TRS_VERSION, 1);
+        try (TraceSet ts = TraceSet.create(filePath.toString(), metaData)) {
+            ts.add(new Trace(new float[]{}));
+        }
+        try (TraceSet ts = TraceSet.open(filePath.toString())) {
+            assertDoesNotThrow(() -> ts.get(0));
+        }
     }
 }
