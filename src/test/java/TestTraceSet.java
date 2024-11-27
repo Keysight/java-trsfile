@@ -675,6 +675,11 @@ public class TestTraceSet {
         try (TraceSet traceSet = TraceSet.open(filePath)) {
             traceSet.getMetaData().getTraceSetParameters();
         }
+        // Unfortunately, the current solution requires a garbage collect to have been performed before the issue is resolved.
+        // Other fixes required either a Java 8 Cleaner.clean() call not accessible from Java 21, or a Java 20 Arena.close(),
+        // which is not been finalized in Java 21.
+        System.gc();
+        Thread.sleep(1000);
         // Assert that the opened file has been closed again, by deleting it.
         File file = new File(filePath);
         assert(file.delete());
