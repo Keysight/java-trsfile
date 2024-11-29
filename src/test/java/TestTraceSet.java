@@ -663,4 +663,25 @@ public class TestTraceSet {
             assertDoesNotThrow(() -> ts.get(0));
         }
     }
+
+    /**
+     * Test to reproduce Github issue #65: TRS files remain 'in use' after they have been closed
+     * Test this issue by opening and closing a file, and then checking whether the file can be deleted.
+     */
+    @Test
+    void testFileReleasing() throws IOException, TRSFormatException, InterruptedException {
+        String filePath = tempDir.toAbsolutePath() + File.separator + BYTES_TRS;
+        // Open the file, and let the try-with-resources statement close it
+        try (TraceSet traceSet = TraceSet.open(filePath)) {
+            traceSet.getMetaData().getTraceSetParameters();
+        }
+        // Unfortunately, the current solution requires a garbage collect to have been performed before the issue is resolved.
+        // Other fixes required either a Java 8 Cleaner.clean() call not accessible from Java 21, or a Java 20 Arena.close(),
+        // which is not been finalized in Java 21.
+        System.gc();
+        Thread.sleep(1000);
+        // Assert that the opened file has been closed again, by deleting it.
+        File file = new File(filePath);
+        assert(file.delete());
+    }
 }
