@@ -11,10 +11,11 @@
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Inspector Trace Set `.trs` file support for Java.
-        Riscure Inspector uses the `.trs` file format to save and read traces from disk. To better assist reading and
-        writing trace set files from third parties, Riscure published this Java library.
+        Keysight Inspector uses the `.trs` file format to save and read traces from disk. To better assist reading and
+        writing trace set files from third parties, Keysight manages this Java library. Note that the library was
+        originally published by Riscure, which was acquired by Keysight in 2024.
     </description>
-    <url>https://github.com/Riscure/java-trsfile</url>
+    <url>https://github.com/Keysight/java-trsfile</url>
     <licenses>
         <license>
             <name>BSD 3-Clause Clear License</name>
@@ -23,9 +24,9 @@
     </licenses>
     <developers>
         <developer>
-            <name>Riscure Team</name>
-            <organization>Riscure</organization>
-            <organizationUrl>https://www.riscure.com</organizationUrl>
+            <name>Riscure Security Solutions</name>
+            <organization>Keysight Technologies</organization>
+            <organizationUrl>https://www.keysight.com</organizationUrl>
         </developer>
     </developers>
     <scm>
