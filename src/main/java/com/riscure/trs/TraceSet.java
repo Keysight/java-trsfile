@@ -338,6 +338,7 @@ public class TraceSet implements AutoCloseable {
     }
 
     private void closeReader() throws IOException {
+        buffer = null;
         readStream.close();
     }
 
