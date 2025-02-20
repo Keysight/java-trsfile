@@ -44,6 +44,10 @@ public class TraceSet implements AutoCloseable {
 
     private ByteBuffer metaDataBuffer;
     private LargePreMappedFile mappedFile;
+    private float[] preallocatedSampleArray;
+    private byte[] preallocatedByteArray;
+    private short[] preallocatedShortArray;
+    private int[] preallocatedIntArray;
 
     private long fileSize;          //the total number of bytes in the underlying file
 
@@ -78,6 +82,9 @@ public class TraceSet implements AutoCloseable {
 
         long traceSize = calculateTraceSize();
         this.mappedFile = new LargePreMappedFile(channel, metaDataSize, traceSize);
+
+        int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
+        this.preallocatedSampleArray = new float[numberOfSamples];
     }
 
     private TraceSet(String outputFileName, TRSMetaData metaData) throws FileNotFoundException {
@@ -150,7 +157,8 @@ public class TraceSet implements AutoCloseable {
             }
 
             float[] samples = readSamples(buffer);
-            return new Trace(traceTitle, samples, traceParameterMap);
+            // Since we are using an internal sample array in this class, Trace.create() should duplicate it internally
+            return Trace.create(traceTitle, samples, traceParameterMap);
         } catch (TRSFormatException ex) {
             throw new IOException(ex);
         }
@@ -358,61 +366,46 @@ public class TraceSet implements AutoCloseable {
         return comDataArray;
     }
 
+    /*
+     * We can reuse the buffers when not dealing with float samples. They are instantiated once just in time if needed.
+     */
     protected float[] readSamples(ByteBuffer buffer) throws TRSFormatException {
-        int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
-        float[] samples;
         switch (Encoding.fromValue(metaData.getInt(SAMPLE_CODING))) {
             case BYTE:
-                byte[] byteData = new byte[numberOfSamples];
-                buffer.get(byteData);
-                samples = toFloatArray(byteData);
+                this.preallocatedByteArray = this.preallocatedByteArray == null ? new byte[preallocatedSampleArray.length] : this.preallocatedByteArray;
+                buffer.get(preallocatedByteArray);
+                // Manual copy of byte[] into float[]
+                for (int k = 0; k < preallocatedSampleArray.length; k++) {
+                    preallocatedSampleArray[k] = preallocatedByteArray[k];
+                }
                 break;
             case SHORT:
+                this.preallocatedShortArray = this.preallocatedShortArray == null ? new short[preallocatedSampleArray.length] : this.preallocatedShortArray;
                 ShortBuffer shortView = buffer.asShortBuffer();
-                short[] shortData = new short[numberOfSamples];
-                shortView.get(shortData);
-                samples = toFloatArray(shortData);
+                shortView.get(preallocatedShortArray);
+                // Manual copy of short[] into float[]
+                for (int k = 0; k < preallocatedSampleArray.length; k++) {
+                    preallocatedSampleArray[k] = preallocatedShortArray[k];
+                }
                 break;
             case FLOAT:
                 FloatBuffer floatView = buffer.asFloatBuffer();
-                samples = new float[numberOfSamples];
-                floatView.get(samples);
+                floatView.get(preallocatedSampleArray);
                 break;
             case INT:
+                this.preallocatedIntArray = this.preallocatedIntArray == null ? new int[preallocatedSampleArray.length] : this.preallocatedIntArray;
                 IntBuffer intView = buffer.asIntBuffer();
-                int[] intData = new int[numberOfSamples];
-                intView.get(intData);
-                samples = toFloatArray(intData);
+                intView.get(preallocatedIntArray);
+                // Manual copy of int[] into float[]
+                for (int k = 0; k < preallocatedIntArray.length; k++) {
+                    preallocatedSampleArray[k] = (float) preallocatedIntArray[k];
+                }
                 break;
             default:
                 throw new TRSFormatException(String.format(UNKNOWN_SAMPLE_CODING, metaData.getInt(SAMPLE_CODING)));
         }
 
-        return samples;
-    }
-
-    private float[] toFloatArray(byte[] numbers) {
-        float[] result = new float[numbers.length];
-        for (int k = 0; k < numbers.length; k++) {
-            result[k] = numbers[k];
-        }
-        return result;
-    }
-
-    private float[] toFloatArray(int[] numbers) {
-        float[] result = new float[numbers.length];
-        for (int k = 0; k < numbers.length; k++) {
-            result[k] = (float) numbers[k];
-        }
-        return result;
-    }
-
-    private float[] toFloatArray(short[] numbers) {
-        float[] result = new float[numbers.length];
-        for (int k = 0; k < numbers.length; k++) {
-            result[k] = numbers[k];
-        }
-        return result;
+        return preallocatedSampleArray;
     }
 
     /**

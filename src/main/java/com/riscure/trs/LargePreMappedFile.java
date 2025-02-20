@@ -15,8 +15,6 @@ public class LargePreMappedFile implements AutoCloseable{
     private final long traceSize;
     private final long fileSize;
 
-    private long totalBufferSize;
-
     public LargePreMappedFile(FileChannel channel, long metaDataSize, long traceSize) throws IOException {
         this.channel = channel;
         this.readOffset = metaDataSize;
@@ -62,7 +60,6 @@ public class LargePreMappedFile implements AutoCloseable{
     private MappedBuffer mapBuffer(int firstTraceIndex, long bufferSize) {
         try {
             long bufferStart = firstTraceIndex * traceSize;
-            this.totalBufferSize += bufferSize;
             long limitedBufferSize = Math.min(fileSize - bufferStart, bufferSize);
             MappedBuffer mappedBuffer = new MappedBuffer(this.channel.map(FileChannel.MapMode.READ_ONLY, readOffset + bufferStart, limitedBufferSize),
                     firstTraceIndex,
