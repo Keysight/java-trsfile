@@ -36,7 +36,6 @@ public class TraceSet implements AutoCloseable {
     private static final String UNKNOWN_SAMPLE_CODING = "Error reading TRS file: unknown sample coding '%d'";
     private static final long MAX_BUFFER_SIZE = Integer.MAX_VALUE;
     private static final String PARAMETER_NOT_DEFINED = "Parameter %s is saved in the trace, but was not found in the header definition";
-    private static final CharsetDecoder UTF8_DECODER = StandardCharsets.UTF_8.newDecoder();
 
     //Reading variables
     private int metaDataSize;
@@ -56,9 +55,11 @@ public class TraceSet implements AutoCloseable {
 
     //Shared variables
     private final TRSMetaData metaData;
-    private boolean open;
     private final boolean writing;        //whether the trace is opened in write mode
     private final Path path;
+    private final CharsetDecoder utf8Decoder = StandardCharsets.UTF_8.newDecoder();
+
+    private boolean open;
 
     private TraceSet(String inputFileName) throws IOException, TRSFormatException {
         this.writing = false;
@@ -244,10 +245,10 @@ public class TraceSet implements AutoCloseable {
         ByteBuffer bb = ByteBuffer.wrap(sba, 0, maxBytes);
         CharBuffer cb = CharBuffer.allocate(maxBytes);
         // Ignore an incomplete character
-        UTF8_DECODER.reset();
-        UTF8_DECODER.onMalformedInput(CodingErrorAction.IGNORE);
-        UTF8_DECODER.decode(bb, cb, true);
-        UTF8_DECODER.flush(cb);
+        utf8Decoder.reset();
+        utf8Decoder.onMalformedInput(CodingErrorAction.IGNORE);
+        utf8Decoder.decode(bb, cb, true);
+        utf8Decoder.flush(cb);
         return new String(cb.array(), 0, cb.position());
     }
 
