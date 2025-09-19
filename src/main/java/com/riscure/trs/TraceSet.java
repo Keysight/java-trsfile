@@ -8,6 +8,8 @@ import static com.riscure.trs.enums.TRSTag.TRS_VERSION;
 
 public abstract class TraceSet implements AutoCloseable {
     protected static final String TRACE_SET_NOT_OPEN = "TraceSet has not been opened or has been closed.";
+    // We want to pre-allocate 1M for the header, so we can grow it if needed without re-writing the whole file
+    public static final long DEFAULT_METADATA_SIZE = 1_000_000L;
 
     //Shared variables
     private final Path path;

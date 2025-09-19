@@ -17,6 +17,7 @@ import com.riscure.trs.types.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 
 import java.io.ByteArrayInputStream;
@@ -26,10 +27,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+import static com.riscure.trs.TraceSet.DEFAULT_METADATA_SIZE;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class TestTraceSet {
+class TestTraceSet {
     private static Path tempDir;
     private static final String BYTES_TRS = "bytes.trs";
     private static final String SHORTS_TRS = "shorts.trs";
@@ -208,7 +210,9 @@ public class TestTraceSet {
     }
 
     /**
-     * This tests adding a parameter with a name of 100000 characters
+     * This tests adding a parameter with a name of 100000 characters.
+     * Expectation: The name will be truncated to the maximum allowed length when writing,
+     * when reading back and comparing with the original metadata, the values will differ
      *
      * @throws IOException
      * @throws TRSFormatException
@@ -218,15 +222,15 @@ public class TestTraceSet {
         TRSMetaData metaData = TRSMetaData.create();
         String parameterName = String.format("%100000s", "XYZ");
         //CREATE TRACE
-        String name = UUID.randomUUID().toString() + TRS;
-        try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath().toString() + File.separator + name, metaData)) {
+        String name = UUID.randomUUID() + TRS;
+        try (TraceSet traceWithParameters = TraceSet.create(tempDir.toAbsolutePath() + File.separator + name, metaData)) {
             TraceParameterMap parameters = new TraceParameterMap();
             parameters.put(parameterName, 1);
             traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
         }
         //READ BACK AND CHECK RESULT
-        assertThrows(TRSFormatException.class, () -> {
-            try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath().toString() + File.separator + name)) {
+        assertThrows(AssertionFailedError.class, () -> {
+            try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath() + File.separator + name)) {
                 TraceParameterDefinitionMap parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
                 parameterDefinitions.forEach((key, parameter) -> assertEquals(parameterName, key));
             }
@@ -683,5 +687,16 @@ public class TestTraceSet {
         // Assert that the opened file has been closed again, by deleting it.
         File file = new File(filePath);
         assert(file.delete());
+    }
+
+    @Test
+    void testDefaultHeaderSize() throws IOException, TRSFormatException {
+        Path filePath = tempDir.resolve("large_header.trs");
+        TRSMetaData metaData = new TRSMetaData();
+        metaData.put(TRSTag.TRS_VERSION, 2);
+        try (TraceSet ts = TraceSet.create(filePath.toString(), metaData)) {
+            ts.add(new Trace(new float[]{}));
+        }
+        assertTrue(filePath.toFile().length() > DEFAULT_METADATA_SIZE);
     }
 }

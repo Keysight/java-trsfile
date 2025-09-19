@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import static com.riscure.trs.TraceSet.DEFAULT_METADATA_SIZE;
+
 public class TRSMetaDataUtils {
     private static final String IGNORED_UNKNOWN_TAG = "ignored unknown metadata tag '%02X' while reading a TRS file\n";
     private static final String TAG_LENGTH_INVALID = "The length field following tag '%s' has value '%X', which is not between 0 and 0xffff";
@@ -30,7 +32,7 @@ public class TRSMetaDataUtils {
             fos.getChannel().position(0);
         }
         for (TRSTag tag : TRSTag.values()) {
-            if (tag.equals(TRSTag.TRACE_BLOCK)) continue;                     //TRACE BLOCK should be the last write
+            if (tag.equals(TRSTag.TRACE_BLOCK) || tag.equals(TRSTag.PADDING)) continue; //PADDING and TRACE BLOCK should be the last writes
             if (!tag.isRequired() && metaData.hasDefaultValue(tag)) continue; //ignore if default and not required
             fos.write(tag.getValue());
             if (tag.getType() == String.class) {
@@ -60,6 +62,14 @@ public class TRSMetaDataUtils {
             } else {
                 throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, tag.getName(), tag.getType()));
             }
+        }
+        // Grow the metadata up to 1M, creating an empty buffer in the trace set
+        // This allows us to grow the header without having to rewrite the whole file
+        while (fos.getChannel().position() < DEFAULT_METADATA_SIZE) {
+            byte[] bytes = new byte[(int) (DEFAULT_METADATA_SIZE - fos.getChannel().position())];
+            fos.write(TRSTag.PADDING.getValue());
+            writeLength(fos, bytes.length);
+            fos.write(bytes);
         }
         fos.write(TRSTag.TRACE_BLOCK.getValue());
         fos.write(TRSTag.TRACE_BLOCK.getLength());
@@ -124,7 +134,7 @@ public class TRSMetaDataUtils {
 
     private static void readAndStoreData(ByteBuffer buffer, byte tag, int length, TRSMetaData trsMD)
             throws TRSFormatException {
-        boolean hasValidLength = (0 <= length & length <= 0xffff);
+        boolean hasValidLength = (0 <= length & length <= 0xffffff);
         TRSTag trsTag;
         try {
             trsTag = TRSTag.fromValue(tag);

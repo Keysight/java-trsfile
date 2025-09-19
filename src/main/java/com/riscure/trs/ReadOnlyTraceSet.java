@@ -22,7 +22,7 @@ public class ReadOnlyTraceSet extends TraceSet {
     private static final String TRACE_INDEX_OUT_OF_BOUNDS = "Requested trace index (%d) is larger than the total number of available traces (%d).";
     private static final String UNKNOWN_SAMPLE_CODING = "Error reading TRS file: unknown sample coding '%d'";
     // This is excessive for the header, but it's only the initial maximum
-    private static final long MAX_METADATA_SIZE = 100_000_000L;
+    private static final long INITIAL_MEMORY_SIZE = 100_000_000L;
 
     private final int metaDataSize;
     private final FileInputStream readStream;
@@ -44,7 +44,7 @@ public class ReadOnlyTraceSet extends TraceSet {
 
         //the file might be bigger than the buffer, in which case we partially buffer it in memory
         this.fileSize = channel.size();
-        long initialBufferSize = Math.min(fileSize, MAX_METADATA_SIZE);
+        long initialBufferSize = Math.min(fileSize, INITIAL_MEMORY_SIZE);
 
         this.metaDataBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, initialBufferSize);
         this.metaData = TRSMetaDataUtils.readTRSMetaData(metaDataBuffer);
