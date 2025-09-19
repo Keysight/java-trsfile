@@ -1,98 +1,21 @@
 package com.riscure.trs;
 
-import com.riscure.trs.enums.Encoding;
-import com.riscure.trs.enums.ParameterType;
-import com.riscure.trs.parameter.TraceParameter;
-import com.riscure.trs.parameter.primitive.StringParameter;
-import com.riscure.trs.parameter.trace.TraceParameterMap;
-import com.riscure.trs.parameter.trace.definition.TraceParameterDefinition;
-import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.*;
-import java.nio.channels.FileChannel;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-import static com.riscure.trs.enums.TRSTag.*;
+import static com.riscure.trs.enums.TRSTag.TRS_VERSION;
 
-public class TraceSet implements AutoCloseable {
-    private static final String ERROR_READING_FILE = "Error reading TRS file: file size (%d) != meta data (%d) + trace size (%d) * nr of traces (%d)";
-    private static final String TRACE_SET_NOT_OPEN = "TraceSet has not been opened or has been closed.";
-    private static final String TRACE_SET_IN_WRITE_MODE = "TraceSet is in write mode. Please open the TraceSet in read mode.";
-    private static final String TRACE_INDEX_OUT_OF_BOUNDS = "Requested trace index (%d) is larger than the total number of available traces (%d).";
-    private static final String TRACE_SET_IN_READ_MODE = "TraceSet is in read mode. Please open the TraceSet in write mode.";
-    private static final String TRACE_LENGTH_DIFFERS = "All traces in a set need to be the same length, but current trace length (%d) differs from the previous trace(s) (%d)";
-    private static final String TRACE_DATA_LENGTH_DIFFERS = "All traces in a set need to have the same data length, but current trace data length (%d) differs from the previous trace(s) (%d)";
-    private static final String UNKNOWN_SAMPLE_CODING = "Error reading TRS file: unknown sample coding '%d'";
-    private static final String PARAMETER_NOT_DEFINED = "Parameter %s is saved in the trace, but was not found in the header definition";
-    // This is excessive for the header, but it's only the initial maximum
-    private static final long MAX_METADATA_SIZE = 100_000_000L;
-
-    //Reading variables
-    private int metaDataSize;
-    private FileInputStream readStream;
-
-    private ByteBuffer metaDataBuffer;
-    private LargePreMappedFile mappedFile;
-    private float[] preallocatedSampleArray;
-    private byte[] preallocatedByteArray;
-    private short[] preallocatedShortArray;
-    private int[] preallocatedIntArray;
-
-    private long fileSize;          //the total number of bytes in the underlying file
-
-    //Writing variables
-    private FileOutputStream writeStream;
-
-    private boolean firstTrace = true;
+public abstract class TraceSet implements AutoCloseable {
+    protected static final String TRACE_SET_NOT_OPEN = "TraceSet has not been opened or has been closed.";
 
     //Shared variables
-    private final TRSMetaData metaData;
-    private final boolean writing;        //whether the trace is opened in write mode
     private final Path path;
-    private final CharsetDecoder utf8Decoder = StandardCharsets.UTF_8.newDecoder();
-
     private boolean open;
 
-    private TraceSet(String inputFileName) throws IOException, TRSFormatException {
-        this.writing = false;
+    protected TraceSet(Path path) {
+        this.path = path;
         this.open = true;
-        this.path = Paths.get(inputFileName);
-        this.readStream = new FileInputStream(inputFileName);
-        FileChannel channel = readStream.getChannel();
-
-        //the file might be bigger than the buffer, in which case we partially buffer it in memory
-        this.fileSize = channel.size();
-        long initialBufferSize = Math.min(fileSize, MAX_METADATA_SIZE);
-
-        this.metaDataBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, initialBufferSize);
-        this.metaData = TRSMetaDataUtils.readTRSMetaData(metaDataBuffer);
-        this.metaDataSize = metaDataBuffer.position();
-        this.metaDataBuffer.limit(metaDataSize);
-
-        long traceSize = calculateTraceSize();
-        this.mappedFile = new LargePreMappedFile(channel, metaDataSize, traceSize);
-
-        int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
-        this.preallocatedSampleArray = new float[numberOfSamples];
-    }
-
-    private TraceSet(String outputFileName, TRSMetaData metaData) throws FileNotFoundException {
-        this.open = true;
-        this.writing = true;
-        this.metaData = metaData;
-        this.path = Paths.get(outputFileName);
-        this.writeStream = new FileOutputStream(outputFileName);
     }
 
     /**
@@ -102,10 +25,11 @@ public class TraceSet implements AutoCloseable {
         return path;
     }
 
-    private long calculateTraceSize() {
-        int sampleSize = Encoding.fromValue(metaData.getInt(SAMPLE_CODING)).getSize();
-        long sampleSpace = metaData.getInt(NUMBER_OF_SAMPLES) * (long) sampleSize;
-        return sampleSpace + metaData.getInt(DATA_LENGTH) + metaData.getInt(TITLE_SPACE);
+    /**
+     * @return whether this trace set is currently open
+     */
+    public boolean isOpen() {
+        return open;
     }
 
     /**
@@ -115,54 +39,7 @@ public class TraceSet implements AutoCloseable {
      * @throws IOException if a read error occurs
      * @throws IllegalArgumentException if this TraceSet is not ready be read from
      */
-    public Trace get(int index) throws IOException {
-        if (!open) throw new IllegalArgumentException(TRACE_SET_NOT_OPEN);
-        if (writing) throw new IllegalArgumentException(TRACE_SET_IN_WRITE_MODE);
-
-        long traceSize = calculateTraceSize();
-        long nrOfTraces = this.metaData.getInt(NUMBER_OF_TRACES);
-        if (index >= nrOfTraces) {
-            String msg = String.format(TRACE_INDEX_OUT_OF_BOUNDS, index, nrOfTraces);
-            throw new IllegalArgumentException(msg);
-        }
-
-        long calculatedFileSize = metaDataSize + traceSize * nrOfTraces;
-        if (fileSize != calculatedFileSize) {
-            String msg = String.format(ERROR_READING_FILE, fileSize, metaDataSize, traceSize, nrOfTraces);
-            throw new IllegalStateException(msg);
-        }
-
-        ByteBuffer buffer = mappedFile.getBuffer(index);
-
-        String traceTitle = this.readTraceTitle(buffer);
-        if (traceTitle.trim().isEmpty()) {
-            traceTitle = String.format("%s %d", metaData.getString(GLOBAL_TITLE), index);
-        }
-
-        try {
-            TraceParameterMap traceParameterMap;
-            if (metaData.getInt(TRS_VERSION) > 1) {
-                TraceParameterDefinitionMap traceParameterDefinitionMap = metaData.getTraceParameterDefinitions();
-                int size = traceParameterDefinitionMap.totalSize();
-                byte[] data = new byte[size];
-                buffer.get(data);
-                traceParameterMap = TraceParameterMap.deserialize(data, traceParameterDefinitionMap);
-            } else {
-                //legacy mode
-                byte[] data = readData(buffer);
-                traceParameterMap = new TraceParameterMap();
-                if (data.length > 0) {
-                    traceParameterMap.put("LEGACY_DATA", data);
-                }
-            }
-
-            float[] samples = readSamples(buffer);
-            // Since we are using an internal sample array in this class, Trace.create() should duplicate it internally
-            return Trace.create(traceTitle, samples, traceParameterMap);
-        } catch (TRSFormatException ex) {
-            throw new IOException(ex);
-        }
-    }
+    public abstract Trace get(int index) throws IOException;
 
     /**
      * Add a trace to a writable TraceSet
@@ -170,243 +47,18 @@ public class TraceSet implements AutoCloseable {
      * @throws IOException if any write error occurs
      * @throws TRSFormatException if the formatting of the trace is invalid
      */
-    public void add(Trace trace) throws IOException, TRSFormatException {
-        if (!open) throw new IllegalArgumentException(TRACE_SET_NOT_OPEN);
-        if (!writing) throw new IllegalArgumentException(TRACE_SET_IN_READ_MODE);
-        if (firstTrace) {
-            int dataLength = trace.getData() == null ? 0 : trace.getData().length;
-            int titleLength = trace.getTitle() == null ? 0 : trace.getTitle().getBytes(StandardCharsets.UTF_8).length;
-            metaData.put(NUMBER_OF_SAMPLES, trace.getNumberOfSamples(), false);
-            metaData.put(DATA_LENGTH, dataLength, false);
-            metaData.put(TITLE_SPACE, titleLength, false);
-            metaData.put(SAMPLE_CODING, trace.getPreferredCoding(), false);
-            metaData.put(TRACE_PARAMETER_DEFINITIONS, TraceParameterDefinitionMap.createFrom(trace.getParameters()));
-            TRSMetaDataUtils.writeTRSMetaData(writeStream, metaData);
-            firstTrace = false;
-        }
-        truncateStrings(trace, metaData);
-        checkValid(trace);
-
-        trace.setTraceSet(this);
-        writeTrace(trace);
-
-        int numberOfTraces = metaData.getInt(NUMBER_OF_TRACES);
-        metaData.put(NUMBER_OF_TRACES, numberOfTraces + 1);
-    }
-
-    /**
-     * This method makes sure that the trace title and any added string parameters adhere to the preset maximum length
-     * @param trace the trace to update
-     * @param metaData the metadata specifying the maximum string lengths
-     */
-    private void truncateStrings(Trace trace, TRSMetaData metaData) {
-        int titleSpace = metaData.getInt(TITLE_SPACE);
-        trace.setTitle(fitUtf8StringToByteLength(trace.getTitle(), titleSpace));
-        TraceParameterDefinitionMap traceParameterDefinitionMap = metaData.getTraceParameterDefinitions();
-        for (Map.Entry<String, TraceParameterDefinition<TraceParameter>> definition : traceParameterDefinitionMap.entrySet()) {
-            TraceParameterDefinition<TraceParameter> value = definition.getValue();
-            String key = definition.getKey();
-            if (value.getType() == ParameterType.STRING) {
-                short stringLength = value.getLength();
-                String stringValue = ((StringParameter) trace.getParameters().get(key)).getValue();
-                if (stringLength != stringValue.getBytes(StandardCharsets.UTF_8).length) {
-                    trace.getParameters().put(key, fitUtf8StringToByteLength(stringValue, stringLength));
-                }
-            }
-        }
-    }
-
-    /**
-     * Fits a string to the number of characters that fit in X bytes avoiding multi byte characters being cut in
-     * half at the cut off point. Also handles surrogate pairs where 2 characters in the string is actually one literal
-     * character. If the string is too long, it is truncated. If it's too short, it's padded with NUL characters.
-     * @param s the string to fit
-     * @param maxBytes the number of bytes required
-     */
-    private String fitUtf8StringToByteLength(String s, int maxBytes) {
-        if (s == null) {
-            return null;
-        }
-        byte[] sba = s.getBytes(StandardCharsets.UTF_8);
-        if (sba.length <= maxBytes) {
-            return new String(Arrays.copyOf(sba, maxBytes));
-        }
-        // Ensure truncation by having byte buffer = maxBytes
-        ByteBuffer bb = ByteBuffer.wrap(sba, 0, maxBytes);
-        CharBuffer cb = CharBuffer.allocate(maxBytes);
-        // Ignore an incomplete character
-        utf8Decoder.reset();
-        utf8Decoder.onMalformedInput(CodingErrorAction.IGNORE);
-        utf8Decoder.decode(bb, cb, true);
-        utf8Decoder.flush(cb);
-        return new String(cb.array(), 0, cb.position());
-    }
-
-    private void writeTrace(Trace trace) throws TRSFormatException, IOException {
-        String title = trace.getTitle() == null ? "" : trace.getTitle();
-        writeStream.write(title.getBytes(StandardCharsets.UTF_8));
-        byte[] data = trace.getData() == null ? new byte[0] : trace.getData();
-        writeStream.write(data);
-        Encoding encoding = Encoding.fromValue(metaData.getInt(SAMPLE_CODING));
-        writeStream.write(toByteArray(trace.getSample(), encoding));
-    }
-
-    private byte[] toByteArray(float[] samples, Encoding encoding) throws TRSFormatException {
-        byte[] result;
-        switch (encoding) {
-            case ILLEGAL:
-                throw new TRSFormatException("Illegal sample encoding");
-            case BYTE:
-                result = new byte[samples.length];
-                for (int k = 0; k < samples.length; k++) {
-                    if (samples[k] != (byte)samples[k]) throw new IllegalArgumentException("Byte sample encoding too small");
-                    result[k] = (byte) samples[k];
-                }
-                break;
-            case SHORT:
-                result = new byte[samples.length * 2];
-                for (int k = 0; k < samples.length; k++) {
-                    if (samples[k] != (short)samples[k]) throw new IllegalArgumentException("Short sample encoding too small");
-                    short value = (short) samples[k];
-                    result[2*k] = (byte) value;
-                    result[2*k + 1] = (byte) (value >> 8);
-                }
-                break;
-            case INT:
-                result = new byte[samples.length * 4];
-                for (int k = 0; k < samples.length; k++) {
-                    int value = (int) samples[k];
-                    result[4*k] = (byte) value;
-                    result[4*k + 1] = (byte) (value >> 8);
-                    result[4*k + 2] = (byte) (value >> 16);
-                    result[4*k + 3] = (byte) (value >> 24);
-                }
-                break;
-            case FLOAT:
-                result = new byte[samples.length * 4];
-                for (int k = 0; k < samples.length; k++) {
-                    int value = Float.floatToIntBits(samples[k]);
-                    result[4*k] = (byte) value;
-                    result[4*k + 1] = (byte) (value >> 8);
-                    result[4*k + 2] = (byte) (value >> 16);
-                    result[4*k + 3] = (byte) (value >> 24);
-                }
-                break;
-            default:
-                throw new TRSFormatException(String.format("Sample encoding not supported: %s", encoding.name()));
-        }
-        return result;
-    }
+    public abstract void add(Trace trace) throws IOException, TRSFormatException;
 
     @Override
     public void close() throws IOException, TRSFormatException {
         open = false;
-        if (writing) closeWriter();
-        else closeReader();
-    }
-
-    private void checkValid(Trace trace) {
-        int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
-        if (metaData.getInt(NUMBER_OF_SAMPLES) != trace.getNumberOfSamples()) {
-            throw new IllegalArgumentException(String.format(TRACE_LENGTH_DIFFERS,
-                    trace.getNumberOfSamples(),
-                    numberOfSamples));
-        }
-
-        int dataLength = metaData.getInt(DATA_LENGTH);
-        int traceDataLength = trace.getData() == null ? 0 : trace.getData().length;
-        if (metaData.getInt(DATA_LENGTH) != traceDataLength) {
-            throw new IllegalArgumentException(String.format(TRACE_DATA_LENGTH_DIFFERS,
-                    traceDataLength,
-                    dataLength));
-        }
-
-        for (Map.Entry<String, TraceParameter> entry : trace.getParameters().entrySet()) {
-            if (!metaData.getTraceParameterDefinitions().containsKey(entry.getKey())) {
-                throw new IllegalArgumentException(String.format(PARAMETER_NOT_DEFINED, entry.getKey()));
-            }
-        }
-    }
-
-    private void closeReader() throws IOException {
-        metaDataBuffer = null;
-        mappedFile.close();
-        readStream.close();
-    }
-
-    private void closeWriter() throws IOException, TRSFormatException {
-        try {
-            //reset writer to start of file and overwrite header
-            writeStream.getChannel().position(0);
-            TRSMetaDataUtils.writeTRSMetaData(writeStream, metaData);
-            writeStream.flush();
-        } finally {
-            writeStream.close();
-        }
     }
 
     /**
      * Get the metadata associated with this trace set
      * @return the metadata associated with this trace set
      */
-    public TRSMetaData getMetaData() {
-        return metaData;
-    }
-
-    protected String readTraceTitle(ByteBuffer buffer) {
-        byte[] titleArray = new byte[metaData.getInt(TITLE_SPACE)];
-        buffer.get(titleArray);
-        return new String(titleArray);
-    }
-
-    protected byte[] readData(ByteBuffer buffer) {
-        int inputSize = metaData.getInt(DATA_LENGTH);
-        byte[] comDataArray = new byte[inputSize];
-        buffer.get(comDataArray);
-        return comDataArray;
-    }
-
-    /*
-     * We can reuse the buffers when not dealing with float samples. They are instantiated once just in time if needed.
-     */
-    protected float[] readSamples(ByteBuffer buffer) throws TRSFormatException {
-        switch (Encoding.fromValue(metaData.getInt(SAMPLE_CODING))) {
-            case BYTE:
-                this.preallocatedByteArray = this.preallocatedByteArray == null ? new byte[preallocatedSampleArray.length] : this.preallocatedByteArray;
-                buffer.get(preallocatedByteArray);
-                // Manual copy of byte[] into float[]
-                for (int k = 0; k < preallocatedSampleArray.length; k++) {
-                    preallocatedSampleArray[k] = preallocatedByteArray[k];
-                }
-                break;
-            case SHORT:
-                this.preallocatedShortArray = this.preallocatedShortArray == null ? new short[preallocatedSampleArray.length] : this.preallocatedShortArray;
-                ShortBuffer shortView = buffer.asShortBuffer();
-                shortView.get(preallocatedShortArray);
-                // Manual copy of short[] into float[]
-                for (int k = 0; k < preallocatedSampleArray.length; k++) {
-                    preallocatedSampleArray[k] = preallocatedShortArray[k];
-                }
-                break;
-            case FLOAT:
-                FloatBuffer floatView = buffer.asFloatBuffer();
-                floatView.get(preallocatedSampleArray);
-                break;
-            case INT:
-                this.preallocatedIntArray = this.preallocatedIntArray == null ? new int[preallocatedSampleArray.length] : this.preallocatedIntArray;
-                IntBuffer intView = buffer.asIntBuffer();
-                intView.get(preallocatedIntArray);
-                // Manual copy of int[] into float[]
-                for (int k = 0; k < preallocatedIntArray.length; k++) {
-                    preallocatedSampleArray[k] = (float) preallocatedIntArray[k];
-                }
-                break;
-            default:
-                throw new TRSFormatException(String.format(UNKNOWN_SAMPLE_CODING, metaData.getInt(SAMPLE_CODING)));
-        }
-
-        return preallocatedSampleArray;
-    }
+    public abstract TRSMetaData getMetaData();
 
     /**
      * Factory method. This creates a new open TraceSet for reading.
@@ -418,7 +70,7 @@ public class TraceSet implements AutoCloseable {
      * @throws TRSFormatException when any incorrect formatting of the TRS file is encountered
      */
     public static TraceSet open(String file) throws IOException, TRSFormatException {
-        return new TraceSet(file);
+        return new ReadOnlyTraceSet(file);
     }
 
     /**
@@ -484,6 +136,6 @@ public class TraceSet implements AutoCloseable {
      */
     public static TraceSet create(String file, TRSMetaData metaData) throws IOException {
         metaData.put(TRS_VERSION, 2, false);
-        return new TraceSet(file, metaData);
+        return new WritableTraceSet(file, metaData);
     }
 }
