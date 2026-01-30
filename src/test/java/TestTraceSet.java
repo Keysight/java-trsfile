@@ -76,10 +76,7 @@ class TestTraceSet {
     }
 
     @AfterAll
-    public static void cleanup() throws InterruptedException {
-        //We need to allow a little time for java to release all handles
-        System.gc();
-        Thread.sleep(100);
+    public static void cleanup() {
         for (File file : Objects.requireNonNull(tempDir.toFile().listFiles())) {
             try {
                 Files.delete(file.toPath());
@@ -679,24 +676,50 @@ class TestTraceSet {
         try (TraceSet traceSet = TraceSet.open(filePath)) {
             traceSet.getMetaData().getTraceSetParameters();
         }
-        // Unfortunately, the current solution requires a garbage collect to have been performed before the issue is resolved.
-        // Other fixes required either a Java 8 Cleaner.clean() call not accessible from Java 21, or a Java 20 Arena.close(),
-        // which is not been finalized in Java 21.
-        System.gc();
-        Thread.sleep(1000);
         // Assert that the opened file has been closed again, by deleting it.
         File file = new File(filePath);
-        assert(file.delete());
+        assertTrue(file.delete());
     }
 
+    /**
+     * This test checks whether version 3 correctly allocates 1MB of header space by default
+     */
     @Test
     void testDefaultHeaderSize() throws IOException, TRSFormatException {
         Path filePath = tempDir.resolve("large_header.trs");
         TRSMetaData metaData = new TRSMetaData();
-        metaData.put(TRSTag.TRS_VERSION, 2);
+        metaData.put(TRSTag.TRS_VERSION, 3);
         try (TraceSet ts = TraceSet.create(filePath.toString(), metaData)) {
-            ts.add(new Trace(new float[]{}));
+            ts.add(new Trace(new float[]{0}));
         }
         assertTrue(filePath.toFile().length() > DEFAULT_METADATA_SIZE);
+    }
+
+    /**
+     * This test checks whether we can successfully add information to the header of a traceset file without
+     * increasing its size
+     */
+    @Test
+    void testOverwritingMetadata() throws IOException, TRSFormatException {
+        String filename = tempDir.toAbsolutePath() + File.separator + BYTES_TRS;
+        long originalFileSize = new File(filename).length();
+
+        TraceSetParameterMap tspm;
+        TraceParameterDefinitionMap tpdm;
+        try (TraceSet readable = TraceSet.open(filename)) {
+            assertFalse(readable.getMetaData().getTraceSetParameters().containsKey("test"));
+
+            tspm = readable.getMetaData().getTraceSetParameters().copy();
+            tpdm = readable.getMetaData().getTraceParameterDefinitions().copy();
+
+            tspm.put("test", "This value should exist afterwards");
+        }
+
+        TraceSet.updateParameterMaps(filename, tspm, tpdm);
+
+        try (TraceSet readable = TraceSet.open(filename)) {
+            assertTrue(readable.getMetaData().getTraceSetParameters().containsKey("test"));
+        }
+        assertEquals(originalFileSize, new File(filename).length());
     }
 }
