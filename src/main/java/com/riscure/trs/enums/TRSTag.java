@@ -55,7 +55,7 @@ public enum TRSTag {
     XY_MEASUREMENTS_PER_SPOT         (0x75, "ME", false,    Integer.class,      4,      0,                 "Number of consecutive measurements done per spot during XY scan"),
     TRACE_SET_PARAMETERS             (0x76, "GP", false,    TraceSetParameterMap.class, 0, UnmodifiableTraceSetParameterMap.of(new TraceSetParameterMap()),                 "The set of custom global trace set parameters"),
     TRACE_PARAMETER_DEFINITIONS      (0x77, "LP", false,    TraceParameterDefinitionMap.class, 0, UnmodifiableTraceParameterDefinitionMap.of(new TraceParameterDefinitionMap()),                 "The set of custom local trace parameters"),
-    PADDING                          (0xFF, "FF", false,    String.class,       0,      0,                  "Empty value to allow growing the metadata");
+    PADDING                          (0xFF, "FF", false,    Integer.class,      0,      0,                 "Empty value to allow growing the metadata");
 
     private static final String UNKNOWN_TAG = "Unknown tag: 0x%X";
 
