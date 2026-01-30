@@ -1,10 +1,14 @@
 package com.riscure.trs;
 
+import com.riscure.trs.parameter.trace.definition.TraceParameterDefinitionMap;
+import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
+
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Path;
 import java.util.List;
 
-import static com.riscure.trs.enums.TRSTag.TRS_VERSION;
+import static com.riscure.trs.enums.TRSTag.*;
 
 public abstract class TraceSet implements AutoCloseable {
     protected static final String TRACE_SET_NOT_OPEN = "TraceSet has not been opened or has been closed.";
@@ -137,7 +141,36 @@ public abstract class TraceSet implements AutoCloseable {
      * @throws IOException if the file creation failed
      */
     public static TraceSet create(String file, TRSMetaData metaData) throws IOException {
-        metaData.put(TRS_VERSION, 2, false);
+        metaData.put(TRS_VERSION, 3, false);
         return new WritableTraceSet(file, metaData);
+    }
+
+    /**
+     * Overwrite the metadata associated with this trace set
+     * If this traceset is in read mode, this is only possible under certain conditions:
+     * 1) The opened trace set is a V3 set
+     * 2) There is empty remaining space (i.e. padding) in the pre-allocated metadata
+     *
+     * TODO: We should probably limit the changes to specific tags. e.g. the number of traces should not be modified,
+     * TODO: but the TSPM is fine. The definition map may be updated, but the size must remain the same
+     */
+    public static void updateParameterMaps(String file, TraceSetParameterMap tspm, TraceParameterDefinitionMap tpdm) throws IOException, TRSFormatException {
+        TRSMetaData metaData;
+        try (TraceSet ts = open(file)) {
+            metaData = ts.getMetaData();
+        }
+
+        if (metaData.getInt(TRS_VERSION) < 3) throw new IOException(String.format("This trace set is version %d. Only version 3 and upwards support updating metadata.", metaData.getInt(TRS_VERSION)));
+        // TODO check this
+        //if (metaDataSize > DEFAULT_METADATA_SIZE) throw new IOException("The meta data has already grown beyond the padding size. This trace set does not support updating the meta data.");
+        if (metaData.getTraceParameterDefinitions().totalSize() != tpdm.totalSize()) throw new IOException("The provided parameter definitions are of a different size than the current ones. While it's possible to change the definitions, the size must match.");
+
+        metaData.put(TRACE_SET_PARAMETERS, tspm);
+        metaData.put(TRACE_PARAMETER_DEFINITIONS, tpdm);
+
+        // Open the file in append mode so we can overwrite the header only
+        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+            TRSMetaDataUtils.writeTRSMetaData(raf, metaData);
+        }
     }
 }

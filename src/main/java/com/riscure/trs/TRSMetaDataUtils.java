@@ -7,6 +7,7 @@ import com.riscure.trs.parameter.traceset.TraceSetParameterMap;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -17,6 +18,64 @@ public class TRSMetaDataUtils {
     private static final String TAG_LENGTH_INVALID = "The length field following tag '%s' has value '%X', which is not between 0 and 0xffff";
     private static final String UNSUPPORTED_TAG_TYPE = "Unsupported tag type for tag '%s': %s";
     private static final String REWINDING_STREAM = "The output stream is not at the start of the file. Rewinding stream.";
+
+    /**
+     * Writes the provided TRS metadata to the stream.
+     *
+     * @param raf                 the file output opened in random access mode
+     * @param metaData            the metadata to write
+     * @throws IOException        if any write error occurs
+     * @throws TRSFormatException if the metadata contains unsupported tags
+     */
+    public static void writeTRSMetaData(RandomAccessFile raf, TRSMetaData metaData) throws IOException, TRSFormatException {
+        // We always write at the start of the file
+        raf.seek(0);
+        for (TRSTag tag : TRSTag.values()) {
+            if (tag.equals(TRSTag.TRACE_BLOCK) || tag.equals(TRSTag.PADDING)) continue; //PADDING and TRACE BLOCK should be the last writes
+            if (!tag.isRequired() && metaData.hasDefaultValue(tag)) continue; //ignore if default and not required
+            raf.write(tag.getValue());
+            if (tag.getType() == String.class) {
+                String s = metaData.getString(tag);
+                byte[] stringBytes = s.getBytes(StandardCharsets.UTF_8);
+                writeLength(raf, stringBytes.length);
+                raf.write(stringBytes);
+            } else if (tag.getType() == Float.class) {
+                float f = metaData.getFloat(tag);
+                writeLength(raf, tag.getLength());
+                writeInt(raf, Float.floatToIntBits(f), tag.getLength());
+            } else if (tag.getType() == Boolean.class) {
+                int value = metaData.getBoolean(tag) ? 1 : 0;
+                writeLength(raf, tag.getLength());
+                writeInt(raf, value, tag.getLength());
+            } else if (tag.getType() == Integer.class) {
+                writeLength(raf, tag.getLength());
+                writeInt(raf, metaData.getInt(tag), tag.getLength());
+            } else if (tag.getType() == TraceSetParameterMap.class) {
+                byte[] serialized = metaData.getTraceSetParameters().serialize();
+                writeLength(raf, serialized.length);
+                raf.write(serialized);
+            } else if (tag.getType() == TraceParameterDefinitionMap.class) {
+                byte[] serialized = metaData.getTraceParameterDefinitions().serialize();
+                writeLength(raf, serialized.length);
+                raf.write(serialized);
+            } else {
+                throw new TRSFormatException(String.format(UNSUPPORTED_TAG_TYPE, tag.getName(), tag.getType()));
+            }
+        }
+        // Grow the metadata up to 1M, creating an empty buffer in the trace set
+        // This allows us to grow the header without having to rewrite the whole file
+        if (raf.getChannel().position() < DEFAULT_METADATA_SIZE) {
+            raf.write(TRSTag.PADDING.getValue());
+            int expectedLength = (int) (DEFAULT_METADATA_SIZE - raf.getChannel().position());
+            // The length of the padding will be the maximum size minus the current position minus the number of bytes used for the length tag minus the length of the trace block tag minus the length of the trace block length tag
+            int paddingLength = expectedLength - computeLengthBytes(expectedLength) - 2;
+            writeLength(raf, paddingLength);
+            byte[] bytes = new byte[paddingLength];
+            raf.write(bytes);
+        }
+        raf.write(TRSTag.TRACE_BLOCK.getValue());
+        raf.write(TRSTag.TRACE_BLOCK.getLength());
+    }
 
     /**
      * Writes the provided TRS metadata to the stream.
@@ -75,9 +134,29 @@ public class TRSMetaDataUtils {
         fos.write(TRSTag.TRACE_BLOCK.getLength());
     }
 
+    private static int computeLengthBytes(int length) {
+        int lengthBytes = 0;
+        if (length > 0x7F) {
+            int lenlen = 1 + (int) (Math.log(length) / Math.log(256));
+            lengthBytes++;
+            for (int i = 0; i < lenlen; i++) {
+                lengthBytes++;
+            }
+        } else {
+            lengthBytes++;
+        }
+        return lengthBytes;
+    }
+
     private static void writeInt(FileOutputStream fos, int value, int length) throws IOException {
         for (int i = 0; i < length; i++) {
             fos.write((byte) (value >> (i * 8)));
+        }
+    }
+
+    private static void writeInt(RandomAccessFile raf, int value, int length) throws IOException {
+        for (int i = 0; i < length; i++) {
+            raf.write((byte) (value >> (i * 8)));
         }
     }
 
@@ -90,6 +169,18 @@ public class TRSMetaDataUtils {
             }
         } else {
             fos.write((byte) length);
+        }
+    }
+
+    private static void writeLength(RandomAccessFile raf, long length) throws IOException {
+        if (length > 0x7F) {
+            int lenlen = 1 + (int) (Math.log(length) / Math.log(256));
+            raf.write((byte) (0x80 + lenlen));
+            for (int i = 0; i < lenlen; i++) {
+                raf.write((byte) (length >> (i * 8)));
+            }
+        } else {
+            raf.write((byte) length);
         }
     }
 
