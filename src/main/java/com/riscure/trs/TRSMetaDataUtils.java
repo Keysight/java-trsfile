@@ -124,10 +124,13 @@ public class TRSMetaDataUtils {
         }
         // Grow the metadata up to 1M, creating an empty buffer in the trace set
         // This allows us to grow the header without having to rewrite the whole file
-        while (fos.getChannel().position() < DEFAULT_METADATA_SIZE) {
-            byte[] bytes = new byte[(int) (DEFAULT_METADATA_SIZE - fos.getChannel().position())];
+        if (fos.getChannel().position() < DEFAULT_METADATA_SIZE) {
             fos.write(TRSTag.PADDING.getValue());
-            writeLength(fos, bytes.length);
+            int expectedLength = (int) (DEFAULT_METADATA_SIZE - fos.getChannel().position());
+            // The length of the padding will be the maximum size minus the current position minus the number of bytes used for the length tag minus the length of the trace block tag minus the length of the trace block length tag
+            int paddingLength = expectedLength - computeLengthBytes(expectedLength) - 2;
+            writeLength(fos, paddingLength);
+            byte[] bytes = new byte[paddingLength];
             fos.write(bytes);
         }
         fos.write(TRSTag.TRACE_BLOCK.getValue());
