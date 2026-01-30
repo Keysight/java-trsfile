@@ -129,6 +129,19 @@ public class ReadOnlyTraceSet extends TraceSet {
     public void close() throws IOException, TRSFormatException {
         super.close();
         closeReader();
+        awaitFileUnmapping();
+    }
+
+    private static void awaitFileUnmapping() throws IOException {
+        // Unfortunately, the current solution requires a garbage collect to have been performed before the issue is resolved.
+        // Other fixes required either a Java 8 Cleaner.clean() call not accessible from Java 21, or a Java 20 Arena.close(),
+        // which is not been finalized in Java 21.
+        System.gc();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
