@@ -30,6 +30,19 @@ public class TRSMetaData {
     }
 
     /**
+     * @return a modifiable copy of this metadata object
+     */
+    public TRSMetaData modifiable() {
+        TRSMetaData copy = new TRSMetaData();
+        for (TRSTag tag : TRSTag.values()) {
+            copy.put(tag, get(tag));
+        }
+        copy.put(TRSTag.TRACE_SET_PARAMETERS, getTraceSetParameters().copy());
+        copy.put(TRSTag.TRACE_PARAMETER_DEFINITIONS, getTraceParameterDefinitions().copy());
+        return copy;
+    }
+
+    /**
      * Add the data associated with the supplied tag to this metadata.
      * This will overwrite any existing value
      * @param tag the tag for which to save the metadata
