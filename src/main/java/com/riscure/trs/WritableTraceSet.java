@@ -35,7 +35,7 @@ public class WritableTraceSet extends TraceSet {
 
     WritableTraceSet(String outputFileName, TRSMetaData metaData) throws FileNotFoundException {
         super(Paths.get(outputFileName));
-        this.metaData = metaData;
+        this.metaData = metaData.modifiable();
         this.writeStream = new FileOutputStream(outputFileName);
     }
 
