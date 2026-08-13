@@ -7,7 +7,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LargePreMappedFile implements AutoCloseable{
+public class LargePreMappedFile implements AutoCloseable {
     private final FileChannel channel;
 
     private final List<MappedBuffer> buffers = new ArrayList<>();
