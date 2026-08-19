@@ -34,18 +34,21 @@ public class TraceSet implements AutoCloseable {
     private static final String TRACE_LENGTH_DIFFERS = "All traces in a set need to be the same length, but current trace length (%d) differs from the previous trace(s) (%d)";
     private static final String TRACE_DATA_LENGTH_DIFFERS = "All traces in a set need to have the same data length, but current trace data length (%d) differs from the previous trace(s) (%d)";
     private static final String UNKNOWN_SAMPLE_CODING = "Error reading TRS file: unknown sample coding '%d'";
-    private static final long MAX_BUFFER_SIZE = Integer.MAX_VALUE;
     private static final String PARAMETER_NOT_DEFINED = "Parameter %s is saved in the trace, but was not found in the header definition";
+    // This is excessive for the header, but it's only the initial maximum
+    private static final long MAX_METADATA_SIZE = 100_000_000L;
 
     //Reading variables
     private int metaDataSize;
     private FileInputStream readStream;
-    private FileChannel channel;
 
-    private ByteBuffer buffer;
+    private ByteBuffer metaDataBuffer;
+    private LargePreMappedFile mappedFile;
+    private float[] preallocatedSampleArray;
+    private byte[] preallocatedByteArray;
+    private short[] preallocatedShortArray;
+    private int[] preallocatedIntArray;
 
-    private long bufferStart;       //the byte index of the file where the buffer window starts
-    private long bufferSize;        //the number of bytes that are in the buffer window
     private long fileSize;          //the total number of bytes in the underlying file
 
     //Writing variables
@@ -66,16 +69,22 @@ public class TraceSet implements AutoCloseable {
         this.open = true;
         this.path = Paths.get(inputFileName);
         this.readStream = new FileInputStream(inputFileName);
-        this.channel = readStream.getChannel();
+        FileChannel channel = readStream.getChannel();
 
         //the file might be bigger than the buffer, in which case we partially buffer it in memory
-        this.fileSize = this.channel.size();
-        this.bufferStart = 0L;
-        this.bufferSize = Math.min(fileSize, MAX_BUFFER_SIZE);
+        this.fileSize = channel.size();
+        long initialBufferSize = Math.min(fileSize, MAX_METADATA_SIZE);
 
-        mapBuffer();
-        this.metaData = TRSMetaDataUtils.readTRSMetaData(buffer);
-        this.metaDataSize = buffer.position();
+        this.metaDataBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, initialBufferSize);
+        this.metaData = TRSMetaDataUtils.readTRSMetaData(metaDataBuffer);
+        this.metaDataSize = metaDataBuffer.position();
+        this.metaDataBuffer.limit(metaDataSize);
+
+        long traceSize = calculateTraceSize();
+        this.mappedFile = new LargePreMappedFile(channel, metaDataSize, traceSize);
+
+        int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
+        this.preallocatedSampleArray = new float[numberOfSamples];
     }
 
     private TraceSet(String outputFileName, TRSMetaData metaData) throws FileNotFoundException {
@@ -91,23 +100,6 @@ public class TraceSet implements AutoCloseable {
      */
     public Path getPath() {
         return path;
-    }
-
-    private void mapBuffer() throws IOException {
-        this.buffer = this.channel.map(FileChannel.MapMode.READ_ONLY, this.bufferStart, this.bufferSize);
-    }
-
-    private void moveBufferIfNecessary(int traceIndex) throws IOException {
-        long traceSize = calculateTraceSize();
-        long start = metaDataSize + (long) traceIndex * traceSize;
-        long end = start + traceSize;
-
-        boolean moveRequired = start < this.bufferStart || this.bufferStart + this.bufferSize < end;
-        if (moveRequired) {
-            this.bufferStart = start;
-            this.bufferSize = Math.min(this.fileSize - start, MAX_BUFFER_SIZE);
-            this.mapBuffer();
-        }
     }
 
     private long calculateTraceSize() {
@@ -140,12 +132,9 @@ public class TraceSet implements AutoCloseable {
             throw new IllegalStateException(msg);
         }
 
-        moveBufferIfNecessary(index);
+        ByteBuffer buffer = mappedFile.getBuffer(index);
 
-        long absolutePosition = metaDataSize + index * traceSize;
-        buffer.position((int) (absolutePosition - this.bufferStart));
-
-        String traceTitle = this.readTraceTitle();
+        String traceTitle = this.readTraceTitle(buffer);
         if (traceTitle.trim().isEmpty()) {
             traceTitle = String.format("%s %d", metaData.getString(GLOBAL_TITLE), index);
         }
@@ -160,15 +149,16 @@ public class TraceSet implements AutoCloseable {
                 traceParameterMap = TraceParameterMap.deserialize(data, traceParameterDefinitionMap);
             } else {
                 //legacy mode
-                byte[] data = readData();
+                byte[] data = readData(buffer);
                 traceParameterMap = new TraceParameterMap();
                 if (data.length > 0) {
                     traceParameterMap.put("LEGACY_DATA", data);
                 }
             }
 
-            float[] samples = readSamples();
-            return new Trace(traceTitle, samples, traceParameterMap);
+            float[] samples = readSamples(buffer);
+            // Since we are using an internal sample array in this class, Trace.create() should duplicate it internally
+            return Trace.create(traceTitle, samples, traceParameterMap);
         } catch (TRSFormatException ex) {
             throw new IOException(ex);
         }
@@ -339,7 +329,8 @@ public class TraceSet implements AutoCloseable {
     }
 
     private void closeReader() throws IOException {
-        buffer = null;
+        metaDataBuffer = null;
+        mappedFile.close();
         readStream.close();
     }
 
@@ -362,75 +353,59 @@ public class TraceSet implements AutoCloseable {
         return metaData;
     }
 
-    protected String readTraceTitle() {
+    protected String readTraceTitle(ByteBuffer buffer) {
         byte[] titleArray = new byte[metaData.getInt(TITLE_SPACE)];
         buffer.get(titleArray);
         return new String(titleArray);
     }
 
-    protected byte[] readData() {
+    protected byte[] readData(ByteBuffer buffer) {
         int inputSize = metaData.getInt(DATA_LENGTH);
         byte[] comDataArray = new byte[inputSize];
         buffer.get(comDataArray);
         return comDataArray;
     }
 
-    protected float[] readSamples() throws TRSFormatException {
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        int numberOfSamples = metaData.getInt(NUMBER_OF_SAMPLES);
-        float[] samples;
+    /*
+     * We can reuse the buffers when not dealing with float samples. They are instantiated once just in time if needed.
+     */
+    protected float[] readSamples(ByteBuffer buffer) throws TRSFormatException {
         switch (Encoding.fromValue(metaData.getInt(SAMPLE_CODING))) {
             case BYTE:
-                byte[] byteData = new byte[numberOfSamples];
-                buffer.get(byteData);
-                samples = toFloatArray(byteData);
+                this.preallocatedByteArray = this.preallocatedByteArray == null ? new byte[preallocatedSampleArray.length] : this.preallocatedByteArray;
+                buffer.get(preallocatedByteArray);
+                // Manual copy of byte[] into float[]
+                for (int k = 0; k < preallocatedSampleArray.length; k++) {
+                    preallocatedSampleArray[k] = preallocatedByteArray[k];
+                }
                 break;
             case SHORT:
+                this.preallocatedShortArray = this.preallocatedShortArray == null ? new short[preallocatedSampleArray.length] : this.preallocatedShortArray;
                 ShortBuffer shortView = buffer.asShortBuffer();
-                short[] shortData = new short[numberOfSamples];
-                shortView.get(shortData);
-                samples = toFloatArray(shortData);
+                shortView.get(preallocatedShortArray);
+                // Manual copy of short[] into float[]
+                for (int k = 0; k < preallocatedSampleArray.length; k++) {
+                    preallocatedSampleArray[k] = preallocatedShortArray[k];
+                }
                 break;
             case FLOAT:
                 FloatBuffer floatView = buffer.asFloatBuffer();
-                samples = new float[numberOfSamples];
-                floatView.get(samples);
+                floatView.get(preallocatedSampleArray);
                 break;
             case INT:
+                this.preallocatedIntArray = this.preallocatedIntArray == null ? new int[preallocatedSampleArray.length] : this.preallocatedIntArray;
                 IntBuffer intView = buffer.asIntBuffer();
-                int[] intData = new int[numberOfSamples];
-                intView.get(intData);
-                samples = toFloatArray(intData);
+                intView.get(preallocatedIntArray);
+                // Manual copy of int[] into float[]
+                for (int k = 0; k < preallocatedIntArray.length; k++) {
+                    preallocatedSampleArray[k] = (float) preallocatedIntArray[k];
+                }
                 break;
             default:
                 throw new TRSFormatException(String.format(UNKNOWN_SAMPLE_CODING, metaData.getInt(SAMPLE_CODING)));
         }
 
-        return samples;
-    }
-
-    private float[] toFloatArray(byte[] numbers) {
-        float[] result = new float[numbers.length];
-        for (int k = 0; k < numbers.length; k++) {
-            result[k] = numbers[k];
-        }
-        return result;
-    }
-
-    private float[] toFloatArray(int[] numbers) {
-        float[] result = new float[numbers.length];
-        for (int k = 0; k < numbers.length; k++) {
-            result[k] = (float) numbers[k];
-        }
-        return result;
-    }
-
-    private float[] toFloatArray(short[] numbers) {
-        float[] result = new float[numbers.length];
-        for (int k = 0; k < numbers.length; k++) {
-            result[k] = numbers[k];
-        }
-        return result;
+        return preallocatedSampleArray;
     }
 
     /**
