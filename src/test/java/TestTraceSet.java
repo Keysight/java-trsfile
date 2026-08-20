@@ -16,7 +16,6 @@ import com.riscure.trs.types.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
 
 
 import java.io.ByteArrayInputStream;
@@ -215,12 +214,12 @@ class TestTraceSet {
             traceWithParameters.add(Trace.create("", FLOAT_SAMPLES, parameters));
         }
         //READ BACK AND CHECK RESULT
-        assertThrows(AssertionFailedError.class, () -> {
-            try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath() + File.separator + name)) {
-                TraceParameterDefinitionMap parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
-                parameterDefinitions.forEach((key, parameter) -> assertEquals(parameterName, key));
+        try (TraceSet readable = TraceSet.open(tempDir.toAbsolutePath() + File.separator + name)) {
+            TraceParameterDefinitionMap parameterDefinitions = readable.getMetaData().getTraceParameterDefinitions();
+            for (var def : parameterDefinitions.keySet()) {
+                assertNotEquals(parameterName.length(), def.length());
             }
-        });
+        }
     }
 
     /**
