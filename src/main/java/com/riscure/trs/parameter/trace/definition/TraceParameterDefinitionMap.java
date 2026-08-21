@@ -6,6 +6,8 @@ import com.riscure.trs.io.LittleEndianInputStream;
 import com.riscure.trs.io.LittleEndianOutputStream;
 import com.riscure.trs.parameter.TraceParameter;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,7 +15,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ import java.util.Map;
  * This explicitly implements LinkedHashMap to ensure that the data is retrieved in the same order as it was added
  */
 public class TraceParameterDefinitionMap extends LinkedHashMap<String, TraceParameterDefinition<TraceParameter>> {
+    private static final Log LOG = LogFactory.getLog(TraceParameterDefinitionMap.class);
     private static final String NAME_TOO_LONG = "Name of length %d exceeds maximum length of %d bytes%nName will be truncated to the maximum length%n";
 
     public TraceParameterDefinitionMap() {
@@ -57,7 +59,7 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
                 byte[] nameBytes = entry.getKey().getBytes(StandardCharsets.UTF_8);
                 //Write NL
                 if (nameBytes.length > Short.MAX_VALUE) {
-                    System.err.printf(NAME_TOO_LONG, nameBytes.length, Short.MAX_VALUE);
+                    LOG.warn(String.format(NAME_TOO_LONG, nameBytes.length, Short.MAX_VALUE));
                     nameBytes = new byte[Short.MAX_VALUE];
                     CharBuffer name = CharBuffer.wrap(entry.getKey());
                     StandardCharsets.UTF_8.newEncoder().encode(name, ByteBuffer.wrap(nameBytes), true);
@@ -98,10 +100,10 @@ public class TraceParameterDefinitionMap extends LinkedHashMap<String, TracePara
     }
 
     /**
-     * Create a set of definitions based on the parameters present in a trace.
+     * Create a map of definitions based on the parameters present in a trace.
      *
      * @param parameters the parameters of the trace
-     * @return a set of definitions based on the parameters present in a trace
+     * @return a map of definitions based on the parameters present in a trace
      */
     public static TraceParameterDefinitionMap createFrom(TraceParameterMap parameters) {
         TraceParameterDefinitionMap definitions = new TraceParameterDefinitionMap();
