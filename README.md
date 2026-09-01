@@ -12,7 +12,7 @@ This library is available on Maven Central. Use the following information to inc
     <dependency>
       <groupId>com.riscure</groupId>
       <artifactId>trsfile</artifactId>
-      <version>2.2.7</version>
+      <version>3.0.0</version>
     </dependency>
 
 #### Basic
@@ -35,6 +35,13 @@ When not supplied at creation time, the following parameters are defined based o
         Since this is dynamically decided based on the values of the first trace, 
         it can be beneficial to force floats by calling Trace.forceFloatCoding() for the first trace. 
 
+### Changes for TRSv3
+As of release 3.0.0, an additional (hidden) tag was introduced that allows for padding in the header up to
+256 kB. This padding can be used to grow the header with additional information without the need for 
+rewriting the entire file, at the cost of a slightly larger file size. This padding will only be added for
+newly created trs files. All files created using version 3.0.0 or later will include this padding and will be 
+tagged with VERSION=3, unless the user explicitly sets the VERSION to 1 or 2.
+
 ### Using the TRS V2 additions
 As of release 2.0, two additional provisions were added to the .trs format: Trace Set Parameters and Trace Parameters. Note that TRS V2 is backwards compatible with TRS V1. However, as can be expected, the additional information will not be available when using a pre-V2 reader.
 #### Trace Set Parameters
@@ -52,7 +59,7 @@ Each type also supports array creation. Please note that there is no provision f
 Global parameters can be added by creating a `TraceSetParameterMap` object when creating a trace set. The following java code shows an example:
 ```java
 TRSMetaData metaData = new TRSMetaData();
-metaData.put(TRSTag.TRS_VERSION, 2);
+metaData.put(TRSTag.TRS_VERSION, 3);
 TraceSetParameterMap parameters = new TraceSetParameterMap();
 parameters.put("BYTE", (byte)1);
 parameters.put("SHORT", (short)2);
