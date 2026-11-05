@@ -3,7 +3,6 @@ package com.riscure.trs;
 import com.riscure.trs.enums.Encoding;
 import com.riscure.trs.parameter.trace.TraceParameterMap;
 
-import java.math.BigInteger;
 import java.nio.FloatBuffer;
 
 /**
@@ -149,11 +148,12 @@ public class Trace {
 
     /**
      * Get the supplementary (crypto) data of this trace as a hexadecimal string.
+     * Each byte is represented by exactly two uppercase hexadecimal characters.
      *
      * @return the supplementary (crypto) data of this trace as a hexadecimal string
      */
     public String getDataString() {
-        return new BigInteger(getData()).toString(16);
+        return HexUtils.toHexString(getData());
     }
 
     /**
